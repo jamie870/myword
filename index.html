@@ -3,47 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Voca Pro - Ultimate</title>
+    <title>Gemini Voca Pro - Native Speaker</title>
     <style>
         :root { --primary: #6366f1; --bg: #f1f5f9; --accent: #f59e0b; }
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        
-        /* 메인 카드 컨테이너 */
         .container { width: 95%; max-width: 420px; background: white; padding: 30px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); text-align: center; position: relative; }
-        
-        /* 상단 상태 표시 */
         .stats { font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         .reset-btn { font-size: 0.75rem; color: #cbd5e1; cursor: pointer; text-decoration: underline; border: none; background: none; }
-
-        /* 이미지 박스 (수동 로드 방식) */
         #img-box { width: 100%; height: 210px; background: #f8fafc; border-radius: 20px; margin-bottom: 25px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px dashed #e2e8f0; }
         #word-img { width: 100%; height: 100%; object-fit: cover; display: none; }
         .img-placeholder { color: #94a3b8; font-size: 0.85rem; padding: 20px; line-height: 1.5; }
-
-        /* 단어 텍스트 */
         #word { font-size: 2.6rem; font-weight: 800; color: #1e293b; margin: 15px 0; letter-spacing: -1px; }
-        
-        /* 뜻 & 예문 (숨김 영역) */
         #content-area { display: none; margin-top: 20px; animation: fadeIn 0.3s ease; }
         #mean { font-size: 1.4rem; color: var(--primary); font-weight: 700; margin-bottom: 12px; }
         .ex-box { background: #f9fafb; padding: 18px; border-radius: 15px; text-align: left; font-size: 0.95rem; line-height: 1.6; color: #475569; border: 1px solid #f1f5f9; }
-
-        /* 제어 버튼 그룹 */
         .control-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px; }
         button { border: none; border-radius: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; outline: none; }
-        
         .btn-view { background: #f1f5f9; color: #475569; padding: 14px; font-size: 0.9rem; }
-        .btn-audio { background: #eef2ff; color: #4f46e5; padding: 14px; font-size: 0.9rem; }
+        .btn-audio { background: #eef2ff; color: #4f46e5; padding: 14px; font-size: 0.9rem; border: 1px solid #c7d2fe; }
         .btn-next { background: #1e293b; color: white; padding: 18px; grid-column: span 2; font-size: 1.1rem; box-shadow: 0 4px 12px rgba(30,41,59,0.2); }
-        
-        /* 알아요 버튼 (실수 방지용 작고 슬림한 디자인) */
         .btn-know { background: #fff; color: #059669; padding: 6px 14px; font-size: 0.75rem; margin-top: 30px; border: 1px solid #dcfce7; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; }
-        .btn-know:hover { background: #f0fdf4; }
-
-        /* 즐겨찾기 별 아이콘 */
         .fav-star { position: absolute; top: 28px; right: 28px; font-size: 1.6rem; color: #e2e8f0; cursor: pointer; transition: 0.2s; z-index: 5; }
         .fav-star.active { color: var(--accent); transform: scale(1.1); }
-
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         button:active { transform: scale(0.97); }
     </style>
@@ -52,14 +33,13 @@
 
 <div class="container">
     <div class="fav-star" id="fav-btn" onclick="toggleFavorite()">★</div>
-    
     <div class="stats">
         <span id="progress-text">로딩 중...</span>
         <button class="reset-btn" onclick="resetData()">학습 초기화</button>
     </div>
 
     <div id="img-box">
-        <div class="img-placeholder" id="placeholder-text">연상 이미지가 필요하면<br>아래 [이미지 보기] 버튼을 누르세요</div>
+        <div class="img-placeholder" id="placeholder-text">이미지가 필요하면<br>[이미지 보기]를 누르세요</div>
         <img id="word-img" src="" alt="word image">
     </div>
 
@@ -68,7 +48,7 @@
     <div class="control-btns">
         <button class="btn-view" onclick="showImage()">🖼️ 이미지 보기</button>
         <button class="btn-view" onclick="showContent()">📖 뜻·예문 보기</button>
-        <button class="btn-audio" onclick="speak()">🔊 원어민 발음</button>
+        <button class="btn-audio" onclick="speak()">🔊 원어민 표준 발음</button>
         <button class="btn-next" onclick="nextWord()">다음 단어 (Next)</button>
     </div>
 
@@ -81,59 +61,374 @@
 </div>
 
 <script>
-    // 단어 데이터 (최신 60개 기준)
     const vocabulary = [
-        { en: "Cut corners", ko: "절차를 생략하다, 편법을 쓰다", ex: "Don't cut corners on safety.", exKo: "안전에 있어서 편법을 쓰지 마세요." },
-        { en: "In the black", ko: "흑자인", ex: "The company is finally in the black.", exKo: "회사가 드디어 흑자로 돌아섰다." },
-        { en: "Get a grip", ko: "정신 차려, 평정심을 찾아", ex: "Get a grip on yourself!", exKo: "정신 좀 차려!" },
-        { en: "Play devil's advocate", ko: "일부러 반대 의견을 제시하다", ex: "Let me play devil's advocate.", exKo: "제가 잠시만 반대 입장에서 말해볼게요." },
-        { en: "Pull out all the stops", ko: "온 힘을 다하다", ex: "They pulled out all the stops.", exKo: "그들은 모든 수단을 동원했다." },
-        { en: "Sleep on it", ko: "심사숙고하다", ex: "Don't decide now, sleep on it.", exKo: "지금 결정하지 말고 하룻밤 생각해보렴." },
-        { en: "Hit the books", ko: "열공하다", ex: "I need to hit the books tonight.", exKo: "나 오늘 밤에 열공해야 해." },
-        { en: "Wait for the dust to settle", ko: "사태가 진정되기를 기다리다", ex: "Let's wait for the dust to settle.", exKo: "상황이 좀 가라앉을 때까지 기다려보자." },
-        { en: "Beat around the bush", ko: "돌려서 말하다", ex: "Stop beating around the bush!", exKo: "말 돌리지 마!" },
-        { en: "Cold feet", ko: "겁이 남, 주춤함", ex: "He got cold feet before the wedding.", exKo: "그는 결혼식 직전에 겁을 먹었다." },
-        { en: "Give someone the cold shoulder", ko: "무시하다, 냉대하다", ex: "She gave me the cold shoulder.", exKo: "그녀는 나를 냉대했다." },
-        { en: "Go down in flames", ko: "참담하게 실패하다", ex: "The project went down in flames.", exKo: "프로젝트가 완전히 실패로 돌아갔다." },
-        { en: "Jump on the bandwagon", ko: "시류에 편승하다", ex: "Everyone is jumping on the bandwagon.", exKo: "모두가 그 유행을 따르고 있다." },
-        { en: "Let the cat out of the bag", ko: "비밀을 누설하다", ex: "Who let the cat out of the bag?", exKo: "누가 비밀을 발설했어?" },
-        { en: "Miss the boat", ko: "기회를 놓치다", ex: "You missed the boat on that deal.", exKo: "그 거래 기회를 놓치셨네요." },
-        { en: "On the fence", ko: "결정을 못 내린", ex: "I'm still on the fence about it.", exKo: "난 아직 고민 중이야." }
-        // ... (나머지 단어들도 이 형식으로 추가하시면 됩니다)
+        
+{ en: "Be grappling with", ko: "~에 어려움을 겪고 있다", ex: ["The city is grappling with high costs.", "I'm grappling with a hard choice.", "She's grappling with the loss."], exKo: ["도시는 높은 물가와 싸우고 있다.", "나는 어려운 선택으로 고심 중이다.", "그녀는 상실감에 힘들어하고 있다."] },
+            { en: "Cost of food away from home", ko: "외식 비용", ex: ["Away-from-home food costs rose.", "We need to cut외식비.", "Sticker shock on food away from home."], exKo: ["외식 비용이 상승했습니다.", "외식비를 줄여야 합니다.", "외식비 가격에 충격을 받았습니다."] },
+            { en: "Have something off", ko: "주문하다", ex: ["I'll have the steak off the menu.", "Can I have something off the grill?", "She had the salad off the special."], exKo: ["메뉴에 있는 스테이크 주문할게요.", "그릴 요리 하나 주문 가능할까요?", "그녀는 스페셜 메뉴 중 샐러드를 주문했다."] },
+            { en: "Make ends meet", ko: "생계를 유지하다", ex: ["It's hard to make ends meet.", "Two jobs to make ends meet.", "Barely making ends meet."], exKo: ["생계 유지가 힘듭니다.", "생계를 위해 투잡을 뜁니다.", "겨우 생계를 유지하고 있습니다."] },
+            { en: "Spontaneously", ko: "즉흥적으로, 충동적으로", ex: ["We left spontaneously.", "She laughed spontaneously.", "Decided spontaneously."], exKo: ["우리는 즉흥적으로 떠났다.", "그녀는 자연스럽게 웃음이 터졌다.", "충동적으로 결정했다."] },
+            { en: "Show signs of", ko: "~할 기미가 보이다", ex: ["Showing signs of recovery.", "Signs of rain appear.", "No signs of stopping."], exKo: ["회복 기미를 보이고 있다.", "비가 올 기미가 보인다.", "멈출 기미가 보이지 않는다."] },
+            { en: "Downtrodden", ko: "억눌린, 짓밟힌", ex: ["Helping the downtrodden.", "A downtrodden community.", "He felt downtrodden."], exKo: ["억눌린 사람들을 돕는다.", "억압받는 공동체.", "그는 짓밟힌 기분을 느꼈다."] },
+            { en: "On a whim", ko: "충동적으로", ex: ["Bought it on a whim.", "Traveled on a whim.", "Don't act on a whim."], exKo: ["충동적으로 그것을 샀다.", "즉흥적으로 여행했다.", "충동적으로 행동하지 마라."] },
+            { en: "Livid", ko: "몹시 화난", ex: ["He was livid at me.", "Boss was livid today.", "I'm absolutely livid."], exKo: ["그는 나에게 격분했다.", "사장님이 오늘 몹시 화나셨다.", "나 진짜 머리끝까지 화났어."] },
+            { en: "Brew up a lot of buzz", ko: "큰 화제가 되다", ex: ["The movie brewed up buzz.", "AI is brewing up buzz.", "The news brewed up buzz."], exKo: ["영화가 큰 화제가 되었다.", "AI가 큰 화제를 일으키고 있다.", "그 뉴스는 큰 화제가 되었다."] },
+            { en: "Comp", ko: "서비스로 무료 제공하다", ex: ["They comped our drinks.", "Manager comped the meal.", "Can you comp this?"], exKo: ["그들이 음료를 서비스로 줬다.", "매니저가 식사를 무료로 해줬다.", "이거 서비스로 주실 수 있나요?"] },
+            { en: "Move the needle", ko: "유의미한 진전을 보이다", ex: ["This will move the needle.", "Need to move the needle.", "Sales moved the needle."], exKo: ["이게 변화를 일으킬 거야.", "유의미한 진전이 필요해.", "매출이 눈에 띄게 변했다."] },
+            { en: "Boil down", ko: "핵심만 남기다, 요약하다", ex: ["It boils down to money.", "Boil down the report.", "What it boils down to is..."], exKo: ["결국 핵심은 돈이다.", "보고서를 요약해라.", "요약하자면 결국..."] },
+            { en: "Aggravation", ko: "골칫거리, 불쾌한 일", ex: ["Constant aggravation.", "Avoid the aggravation.", "Such an aggravation!"], exKo: ["끊임없는 골칫거리.", "불쾌한 일을 피하세요.", "정말 짜증 나는 일이야!"] },
+            { en: "I can’t underscore this enough", ko: "아무리 강조해도 지나치지 않다", ex: ["I can't underscore safety enough.", "Underscore the importance.", "Can't underscore this point enough."], exKo: ["안전은 아무리 강조해도 지나치지 않다.", "중요성을 강조해라.", "이 점은 정말 강조하고 싶다."] },
+            { en: "Left me on read", ko: "읽씹하다", ex: ["She left me on read.", "Hate being left on read.", "Why leave me on read?"], exKo: ["그녀가 나를 읽씹했다.", "읽씹 당하는 건 싫어.", "왜 내 메시지 씹었어?"] },
+            { en: "A breeze", ko: "아주 쉬운 것", ex: ["The test was a breeze.", "Setup was a breeze.", "Cooking is a breeze."], exKo: ["시험은 거저였어.", "설치는 누워서 떡먹기였어.", "요리는 아주 쉬워."] },
+            { en: "Count on", ko: "의지하다", ex: ["Count on me.", "I count on you.", "Can't count on him."], exKo: ["나만 믿어.", "널 믿고 있어.", "그는 믿을 수 없어."] },
+            { en: "Side hustle", ko: "부업, 투잡", ex: ["Starting a side hustle.", "My side hustle pays well.", "Need a side hustle."], exKo: ["부업을 시작했어.", "내 부업은 짭짤해.", "부업이 필요해."] },
+            { en: "Lucrative", ko: "수익성이 좋은", ex: ["A lucrative business.", "It's a lucrative deal.", "Finding a lucrative job."], exKo: ["수익성 좋은 사업.", "수지가 맞는 거래야.", "돈 잘 버는 직업 찾기."] },
+            { en: "Sort (sth) out", ko: "해결하다, 정리하다", ex: ["Sort out the problem.", "Let's sort it out.", "Need to sort things out."], exKo: ["문제를 해결해.", "우리 정산/정리하자.", "상황을 정리해야 해."] },
+            { en: "Procrastination", ko: "미루는 버릇", ex: ["Stop procrastination.", "Procrastination is bad.", "Fight procrastination."], exKo: ["미루는 것 좀 그만해.", "미루는 버릇은 나빠.", "미루는 습관과 싸워라."] },
+            { en: "Sticker shock", ko: "가격표 충격", ex: ["I had sticker shock.", "Avoid sticker shock.", "High sticker shock."], exKo: ["가격 보고 기절할 뻔.", "가격 충격을 피하세요.", "비싼 가격에 놀람."] },
+            { en: "Slay", ko: "멋지다, 끝내준다", ex: ["You slay in that dress.", "She slayed the performance.", "Slay all day!"], exKo: ["그 드레스 입으니 끝내준다.", "그녀는 공연을 찢었다.", "오늘도 멋지게 살아!"] },
+            { en: "No cap", ko: "진짜야 (거짓말 아님)", ex: ["I'm rich, no cap.", "The food is good, no cap.", "No cap, it's true."], exKo: ["나 진짜 부자야, 구라 아님.", "음식 진짜 맛있어, 실화야.", "거짓말 아니고 진짜야."] },
+            { en: "Low-key", ko: "은근히, 솔직히", ex: ["I low-key miss him.", "Low-key tired.", "Keep it low-key."], exKo: ["은근히 그가 그리워.", "솔직히 좀 피곤해.", "조용히/은근히 하자."] },
+            { en: "Walk through", ko: "차근차근 설명하다", ex: ["Walk me through it.", "Walk through the steps.", "I'll walk you through."], exKo: ["나한테 천천히 설명해줘.", "단계를 차례대로 밟아보자.", "내가 하나씩 알려줄게."] },
+            { en: "Kudos", ko: "잘했어, 대단해", ex: ["Kudos to you!", "Earned some kudos.", "Kudos on the win."], exKo: ["정말 잘했어!", "칭찬을 받았어.", "승리 축하해/대단해."] },
+            { en: "Call it a day", ko: "오늘은 그만 끝내다", ex: ["Let's call it a day.", "Ready to call it a day?", "Time to call it a day."], exKo: ["오늘은 여기까지 하자.", "이제 마칠 준비 됐니?", "마무리할 시간이야."] },
+            { en: "In mint condition", ko: "거의 새거야", ex: ["It's in mint condition.", "Kept in mint condition.", "Sold in mint condition."], exKo: ["거의 새 상태야.", "완전 새것처럼 관리했어.", "새것 같은 상태로 팔렸어."] },
+                        { en: "Tacked on", ko: "(수수료 등을) 덧붙이다", ex: ["They tacked on a $10 service fee.", "A surcharge was tacked on the bill.", "Don't just tack on extra costs."], exKo: ["그들은 10달러의 서비스 요금을 추가로 덧붙였다.", "청구서에 추가 요금이 덧붙여졌다.", "추가 비용을 그냥 덧붙이지 마세요."] },
+            { en: "Hospitality", ko: "환대, 서비스 마인드", ex: ["Thanks for your warm hospitality.", "The hotel is famous for its hospitality.", "We work in the hospitality industry."], exKo: ["따뜻한 환대에 감사드립니다.", "그 호텔은 서비스가 좋기로 유명하다.", "우리는 서비스/숙박업계에서 일한다."] },
+            { en: "Crank out", ko: "빠르게 끊임없이 만들어내다", ex: ["He cranks out three books a year.", "The factory cranks out parts.", "Stop cranking out poor quality work."], exKo: ["그는 1년에 책을 세 권씩 써낸다.", "공장이 부품을 끊임없이 찍어내고 있다.", "저품질의 결과물을 마구 만들어내지 마라."] },
+            { en: "Acknowledge", ko: "인정하다, 받았음을 알리다", ex: ["Please acknowledge receipt of this email.", "He refused to acknowledge his mistake.", "They acknowledged the problem."], exKo: ["이 이메일을 받았음을 확인해 주세요.", "그는 자신의 실수를 인정하기를 거부했다.", "그들은 문제를 인정했다."] },
+            { en: "Exponentially faster", ko: "기하급수적으로 더 빠르게", ex: ["Technology grows exponentially faster.", "Prices rose exponentially faster.", "The virus spread exponentially faster."], exKo: ["기술은 기하급수적으로 빠르게 성장한다.", "가격이 기하급수적으로 빠르게 올랐다.", "바이러스가 기하급수적으로 빠르게 퍼졌다."] },
+            { en: "Aggravation", ko: "골칫거리, 악화", ex: ["It's not worth the aggravation.", "This causes a lot of aggravation.", "The injury needs no more aggravation."], exKo: ["그건 짜증을 감수할 가치가 없다.", "이것은 많은 골칫거리를 야기한다.", "그 부상은 더 이상의 악화가 없어야 한다."] },
+            { en: "Move the needle", ko: "눈에 띄는 변화를 일으키다", ex: ["We need to move the needle on sales.", "Does this marketing move the needle?", "This small change won't move the needle."], exKo: ["매출에 유의미한 변화를 일으켜야 한다.", "이 마케팅이 효과가 좀 있나요?", "이 작은 변화로는 큰 차이를 못 만든다."] },
+            { en: "Nickel", ko: "5센트 (푼돈/소액 상징)", ex: ["I won't spend another nickel here.", "It's not worth a nickel.", "He saves every nickel he earns."], exKo: ["여기서 단돈 10원도 더 안 쓸 거야.", "그건 푼돈의 가치도 없다.", "그는 번 돈을 한 푼 한 푼 아낀다."] },
+            { en: "Theatrical release", ko: "극장 개봉", ex: ["The movie is set for theatrical release.", "Skip streaming for a theatrical release.", "The theatrical release was a hit."], exKo: ["그 영화는 극장 개봉을 앞두고 있다.", "스트리밍 대신 극장 개봉을 해라.", "극장 개봉은 대성공이었다."] },
+            { en: "Accrued", ko: "차곡차곡 쌓이다 (이자/포인트 등)", ex: ["Interest is accrued daily.", "I have accrued a lot of miles.", "Accrued vacation time."], exKo: ["이자가 매일 복리로 쌓인다.", "나는 마일리지를 많이 쌓았다.", "누적된 휴가 시간."] },
+            { en: "Viral craze", ko: "바이럴 열풍", ex: ["The song started a viral craze.", "It's the latest viral craze.", "Join the viral craze!"], exKo: ["그 노래가 바이럴 열풍을 일으켰다.", "이것은 최신 바이럴 열풍이다.", "바이럴 열풍에 동참해라!"] },
+            { en: "Looney tune", ko: "미친 사람, 과하게 열정적인 사람", ex: ["He is a complete looney tune.", "Don't listen to that looney tune.", "Only a looney tune would do that."], exKo: ["그는 완전히 제정신이 아니다.", "저 미친 사람 말 듣지 마.", "미친 사람이나 그런 짓을 할 거야."] },
+            { en: "Flabbergasted", ko: "매우 깜짝 놀란", ex: ["I was flabbergasted by the news.", "She was flabbergasted at the price.", "We were left flabbergasted."], exKo: ["그 소식에 아연실색했다.", "그녀는 가격을 보고 소스라치게 놀랐다.", "우리는 너무 놀라 어안이 벙벙했다."] },
+            { en: "A thorn in the side of", ko: "눈엣가시, 골칫거리", ex: ["He is a thorn in my side.", "The new law is a thorn in our side.", "A constant thorn in the side."], exKo: ["그는 나에게 눈엣가시다.", "새 법안은 우리에게 큰 골칫거리다.", "지속적인 골칫덩이."] },
+            { en: "May I be excused?", ko: "먼저 일어나도 될까요?", ex: ["May I be excused from the table?", "Excuse me, may I be excused?", "I have a meeting, may I be excused?"], exKo: ["식사 도중 먼저 일어나도 될까요?", "실례지만, 먼저 가봐도 될까요?", "회의가 있어서 먼저 일어나도 될까요?"] },
+            { en: "Scoot over", ko: "옆으로 비키다", ex: ["Can you scoot over a bit?", "Scoot over so I can sit.", "Please scoot over."], exKo: ["옆으로 좀 비켜줄래?", "나 앉게 옆으로 좀 가봐.", "옆으로 좀 이동해 주세요."] },
+            { en: "Allegedly", ko: "혐의가 있는, 전해진 바에 의하면", ex: ["He allegedly stole the money.", "The site is allegedly haunted.", "Allegedly, they are dating."], exKo: ["그는 돈을 훔쳤다는 혐의를 받고 있다.", "그곳은 귀신이 나온다고 전해진다.", "소문에 의하면 그들은 사귀고 있다."] },
+            { en: "Heist", ko: "대형 절도 사건", ex: ["A diamond heist took place.", "The movie is about a bank heist.", "They planned a major heist."], exKo: ["다이아몬드 강도 사건이 발생했다.", "그 영화는 은행 털이에 관한 것이다.", "그들은 대형 절도 사건을 모의했다."] },
+            { en: "Real jolt", ko: "큰 충격, 자극", ex: ["The news gave me a real jolt.", "A real jolt to the system.", "Need a real jolt of caffeine."], exKo: ["그 소식은 나에게 큰 충격을 주었다.", "시스템에 가해진 큰 충격.", "강력한 카페인 수혈이 필요해."] },
+            { en: "Levy a tariff on", ko: "~에 관세를 부과하다", ex: ["The US levied a tariff on steel.", "Gov plans to levy a tariff.", "Impact of levying a tariff."], exKo: ["미국은 철강에 관세를 부과했다.", "정부는 관세 부과를 계획 중이다.", "관세 부과의 영향."] },
+            { en: "Stave off", ko: "늦추다, 막다", ex: ["Stave off the crisis.", "To stave off hunger.", "Stave off a recession."], exKo: ["위기를 간신히 모면하다.", "배고픔을 참다/막다.", "경기 침체를 막다."] },
+            { en: "Stockpile", ko: "비축하다", ex: ["We need to stockpile water.", "Stockpiling for the winter.", "A huge stockpile of fuel."], exKo: ["우리는 물을 비축해야 한다.", "겨울을 위해 비축 중이다.", "엄청난 양의 연료 비축분."] },
+            { en: "Feel a crunch", ko: "경제적 압박을 느끼다", ex: ["Families feel the price crunch.", "The company feels the crunch.", "Feeling the budget crunch."], exKo: ["가족들이 물가 압박을 느끼고 있다.", "회사가 자금 압박을 겪고 있다.", "예산 압박을 느끼는 중이다."] },
+            { en: "I can’t be bothered", ko: "귀찮아 죽겠다", ex: ["I can't be bothered to cook.", "Don't ask, I can't be bothered.", "I can't be bothered with this."], exKo: ["요리하기 너무 귀찮아.", "묻지 마, 대답하기도 귀찮으니까.", "이런 일에 신경 쓰고 싶지 않아."] },
+            { en: "Side hustle", ko: "부업, 투잡", ex: ["My side hustle is profitable.", "Need a side hustle for extra cash.", "A creative side hustle."], exKo: ["내 부업은 수익이 괜찮다.", "용돈 벌이를 위해 부업이 필요해.", "창의적인 부업."] },
+            { en: "On call", ko: "당직 근무 중인, 대기 중인", ex: ["I'm on call this weekend.", "The doctor is on call.", "Always on call for work."], exKo: ["나 이번 주말에 당직이야.", "의사가 대기 근무 중이다.", "업무 때문에 항상 대기 상태다."] },
+            { en: "Sort (sth) out", ko: "해결하다, 정리하다", ex: ["Sort out your room.", "Let's sort this problem out.", "I need to sort out my life."], exKo: ["방 좀 치워라.", "이 문제 좀 해결하자.", "내 인생을 좀 정리할 필요가 있어."] },
+            { en: "Sketchy", ko: "수상한, 믿기 어려운", ex: ["That alley looks sketchy.", "A sketchy deal.", "The info is a bit sketchy."], exKo: ["저 골목 좀 수상해 보여.", "미심쩍은 거래.", "정보가 좀 불확실해."] },
+            { en: "I won’t take no for an answer", ko: "거절은 거절한다", ex: ["You must come, I won't take no.", "I won't take no for an answer.", "Please join us, I won't take no."], exKo: ["꼭 오세요, 거절은 안 됩니다.", "아니오라는 대답은 받지 않겠어.", "함께해요, 거절은 거절합니다."] },
+            { en: "Beer goggles", ko: "술 취해 콩깍지가 씌다", ex: ["Must be the beer goggles.", "He has beer goggles on.", "Beware of beer goggles."], exKo: ["술 때문에 예뻐 보이는 게 분명해.", "그는 술 취해서 콩깍지가 씌었다.", "술 취해 사람 잘못 보는 걸 조심해."] },
+                        { en: "Square up", ko: "정산하다, 빚을 갚다", ex: ["Let's square up for the meal.", "I'll square up with you later.", "We need to square up our debts."], exKo: ["식사비 정산하자.", "나중에 너한테 돈 갚을게/정산할게.", "우리는 빚을 청산해야 한다."] },
+            { en: "Sticker shock", ko: "가격표 충격 (예상보다 비쌀 때)", ex: ["I had sticker shock at the dealership.", "Avoid sticker shock by checking prices.", "The new iPhone gave me sticker shock."], exKo: ["대리점에서 가격 보고 충격받았어.", "가격을 미리 확인해서 충격을 피하세요.", "새 아이폰 가격은 정말 충격이었어."] },
+            { en: "You know the drill", ko: "어떻게 하는지 알지? (늘 하던 대로 해)", ex: ["Okay everyone, you know the drill.", "You know the drill, shoes off inside.", "Come in and you know the drill."], exKo: ["자 여러분, 어떻게 하는지 아시죠?", "알잖아, 안에서는 신발 벗어야 하는 거.", "들어와서 하던 대로 해."] },
+            { en: "Vibe check", ko: "분위기 파악, 분위기 확인", ex: ["Let's do a quick vibe check.", "The vibe check passed.", "He failed the vibe check."], exKo: ["분위기 파악 좀 해보자.", "분위기 합격이네.", "그는 분위기 파악을 못 했어."] },
+            { en: "No cap", ko: "진짜로, 구라 아님 (리얼)", ex: ["That was the best pizza, no cap.", "I'm actually moving to NYC, no cap.", "No cap, it’s true."], exKo: ["그거 진짜 인생 피자였어, 리얼.", "나 진짜 뉴욕으로 이사 가, 구라 아냐.", "거짓말 아니고 진짜야."] },
+            { en: "Slay", ko: "끝내주게 멋지다, 찢었다", ex: ["You slay in that outfit!", "She slayed the performance.", "Slay all day."], exKo: ["그 옷 입으니까 진짜 끝내준다!", "그녀는 공연을 아주 찢어놓았어.", "매일을 멋지게 살아."] },
+            { en: "Low-key", ko: "은근히, 솔직히, 남몰래", ex: ["I low-key love this song.", "I'm low-key excited about the date.", "Keep it low-key for now."], exKo: ["나 이 노래 은근히 좋아해.", "나 솔직히 데이트 기대돼.", "지금은 일단 조용히 있자(비밀로 하자)."] },
+            { en: "High-key", ko: "대놓고, 아주 분명하게", ex: ["I high-key hate this weather.", "She is high-key obsessed with him.", "I'm high-key proud of you."], exKo: ["나 진짜 대놓고 이 날씨가 싫어.", "그녀는 대놓고 그에게 집착해.", "나 진짜 네가 너무 자랑스러워."] },
+            { en: "That hit different", ko: "이건 좀 다르네 (기깔나네)", ex: ["Cold water hits different in summer.", "This coffee hits different today.", "The ending of the movie hit different."], exKo: ["여름에 마시는 찬물은 진짜 느낌이 달라.", "오늘 마시는 커피는 유독 기깔나네.", "영화 결말이 정말 다르게 와닿았어."] },
+            { en: "Main character energy", ko: "주인공 병, 자신감 넘치는 태도", ex: ["She has such main character energy.", "Walking in with main character energy.", "Embrace your main character energy."], exKo: ["그녀는 정말 주인공 같은 기운이 있어.", "주인공처럼 자신감 있게 들어오네.", "당신의 주인공 같은 에너지를 즐기세요."] },
+            { en: "Bent out of shape", ko: "화가 난, 기분이 상한", ex: ["Don't get bent out of shape about it.", "He's all bent out of shape.", "Why are you so bent out of shape?"], exKo: ["그 일로 너무 기분 상해하지 마.", "그는 지금 잔뜩 화가 나 있어.", "왜 그렇게 기분이 뒤틀려 있어?"] },
+            { en: "On the house", ko: "서비스입니다 (가게에서 무료)", ex: ["The drinks are on the house.", "Is this dessert on the house?", "Everything today is on the house."], exKo: ["음료는 서비스입니다.", "이 디저트 공짜인가요?", "오늘은 전부 서비스입니다."] },
+            { en: "What a steal", ko: "완전 거저네 (매우 싼 가격)", ex: ["For $10, what a steal!", "I got this laptop for $200, what a steal.", "This car is a steal."], exKo: ["10달러라니, 진짜 거저네!", "이 노트북 200달러에 샀어, 완전 득템이지.", "이 차는 거저 가져가는 거야."] },
+            { en: "Ditch", ko: "버리다, (약속 등을) 깨다, 째다", ex: ["I ditched my old car.", "He ditched class again.", "Don't ditch your friends."], exKo: ["나 옛날 차 처분했어.", "그는 또 수업을 쨌어.", "친구들과의 의리를 저버리지 마."] },
+            { en: "Why bother?", ko: "굳이 왜? (할 필요 없어)", ex: ["Why bother cleaning? It'll get dirty.", "If he's not coming, why bother?", "Why bother calling him now?"], exKo: ["굳이 왜 청소해? 어차피 또 더러워질 텐데.", "그가 안 온다면 굳이 할 필요 있어?", "지금 굳이 왜 그에게 전화해?"] },
+            { en: "Ring a bell", ko: "들어본 적 있다, 낯이 익다", ex: ["The name rings a bell.", "Does this place ring a bell?", "His face doesn't ring a bell."], exKo: ["이름이 낯익네요.", "이 장소 와본 적 있는 것 같니?", "그의 얼굴은 전혀 기억이 안 나."] },
+            { en: "Cut to the chase", ko: "본론으로 바로 들어가다", ex: ["Stop talking and cut to the chase.", "Let's cut to the chase, how much?", "Can we cut to the chase, please?"], exKo: ["딴소리 말고 본론만 말해.", "본론으로 들어가서, 얼마예요?", "바로 본론으로 들어갈 수 있을까요?"] },
+            { en: "In a nutshell", ko: "한마디로, 아주 간단히 말하면", ex: ["In a nutshell, we lost the money.", "Explain it in a nutshell.", "That's the story in a nutshell."], exKo: ["요약하자면, 우리 돈 날렸어.", "아주 간단하게 설명해 줘.", "그게 사건의 전말을 요약한 거야."] },
+            { en: "Call it a day", ko: "오늘은 여기까지 하자 (마무리)", ex: ["I'm tired, let's call it a day.", "Ready to call it a day?", "We called it a day at 6 PM."], exKo: ["피곤하다, 오늘은 이만하자.", "마무리할 준비 됐니?", "우리는 오후 6시에 업무를 마쳤다."] },
+            { en: "Out of the blue", ko: "느닷없이, 갑자기", ex: ["He called me out of the blue.", "It happened out of the blue.", "A message out of the blue."], exKo: ["그가 갑자기 나에게 전화했어.", "그 일은 예고 없이 일어났어.", "뜬금없는 메시지 하나."] },
+            { en: "Butterflies in my stomach", ko: "가슴이 두근거리고 긴장되다", ex: ["I have butterflies in my stomach.", "Before the speech, I had butterflies.", "Does he give you butterflies?"], exKo: ["나 너무 긴장돼서 가슴이 떨려.", "연설 전에 정말 떨렸어.", "그 사람 보면 가슴이 두근거리니?"] },
+            { en: "Under the weather", ko: "몸 상태가 좋지 않은", ex: ["I'm feeling a bit under the weather.", "He's under the weather today.", "Hope you're not under the weather."], exKo: ["몸 상태가 약간 안 좋아.", "그는 오늘 몸이 좀 안 좋대.", "아프지 않았으면 좋겠어."] },
+            { en: "Break a leg", ko: "행운을 빌어 (특히 공연 전)", ex: ["Break a leg on your audition!", "I told him to break a leg.", "Break a leg, everyone!"], exKo: ["오디션 잘 봐, 행운을 빌어!", "그에게 행운을 빈다고 말했어.", "모두들 화이팅!"] },
+            { en: "Piece of cake", ko: "식은 죽 먹기", ex: ["The exam was a piece of cake.", "It's a piece of cake for me.", "Learning this is a piece of cake."], exKo: ["시험은 누워서 떡 먹기였어.", "그건 나한테 껌이지.", "이거 배우는 건 아주 쉬워."] },
+            { en: "In mint condition", ko: "완전 새것 같은 상태", ex: ["The phone is in mint condition.", "Kept his car in mint condition.", "It's 10 years old but in mint condition."], exKo: ["폰 상태가 완전 새 거야.", "그의 차를 거의 새 상태로 관리했어.", "10년 됐는데 완전 새것 같아."] },
+            { en: "Pull someone's leg", ko: "농담하다, 놀리다", ex: ["Are you pulling my leg?", "I was just pulling your leg.", "Don't pull my leg, is it true?"], exKo: ["지금 나 놀리는 거야?", "그냥 농담한 거였어.", "장난치지 말고, 진짜야?"] },
+            { en: "Costs an arm and a leg", ko: "매우 비싸다", ex: ["That house costs an arm and a leg.", "Repairs cost an arm and a leg.", "My new car cost an arm and a leg."], exKo: ["저 집은 정말 등골 휘게 비싸.", "수리비가 장난 아니게 많이 들었어.", "내 새 차는 진짜 거액을 주고 샀어."] },
+            { en: "Bite the bullet", ko: "어려운 상황을 참고 받아들이다", ex: ["I had to bite the bullet and do it.", "Bite the bullet and apologize.", "It's time to bite the bullet."], exKo: ["눈 딱 감고 참고 해야 했어.", "꾹 참고 가서 사과해.", "이제는 매를 맞아야 할 시간이야(직면해야 해)."] },
+            { en: "Get out of hand", ko: "감당할 수 없게 되다, 과해지다", ex: ["The party got out of hand.", "Prices are getting out of hand.", "Before things get out of hand..."], exKo: ["파티가 걷잡을 수 없이 커졌어.", "물가가 감당 안 되게 오르고 있어.", "상황이 악화되기 전에..."] },
+            { en: "Hit the sack", ko: "잠자리에 들다", ex: ["I'm exhausted, time to hit the sack.", "I'll hit the sack early tonight.", "What time did you hit the sack?"], exKo: ["너무 피곤하다, 자러 가야겠어.", "나 오늘 밤엔 일찍 잘 거야.", "어제 몇 시에 잤니?"] },
+                        { en: "Go the extra mile", ko: "특별히 더 노력하다", ex: ["He always goes the extra mile for customers.", "To succeed, you must go the extra mile.", "The hotel went the extra mile for us."], exKo: ["그는 항상 고객을 위해 기대 이상의 노력을 한다.", "성공하려면 남들보다 더 노력해야 한다.", "그 호텔은 우리를 위해 세심한 배려를 아끼지 않았다."] },
+            { en: "Ballpark figure", ko: "어림잡은 수치, 대략적인 액수", ex: ["Can you give me a ballpark figure?", "The ballpark figure is $5,000.", "I just need a ballpark figure for now."], exKo: ["대략적인 수치를 말씀해 주시겠어요?", "어림잡아 5,000달러 정도 됩니다.", "지금은 그냥 대략적인 액수만 알면 돼요."] },
+            { en: "Back to the drawing board", ko: "계획을 처음부터 다시 세우다", ex: ["The proposal failed, so back to the drawing board.", "We need to go back to the drawing board.", "It's back to the drawing board for us."], exKo: ["제안이 거절되어서 처음부터 다시 시작해야 해요.", "우리는 계획을 전면 재검토해야 합니다.", "다시 원점으로 돌아가서 시작해야겠네요."] },
+            { en: "On the same page", ko: "같은 생각인, 이해하고 있는 내용이 같은", ex: ["Are we all on the same page?", "I want to make sure we're on the same page.", "We need to be on the same page."], exKo: ["우리 모두 같은 생각인가요?", "우리가 서로 같은 이해를 하고 있는지 확인하고 싶어요.", "우리는 의견을 하나로 모아야 합니다."] },
+            { en: "Get the ball rolling", ko: "일을 시작하다, 실행에 옮기다", ex: ["Let's get the ball rolling on this project.", "Who wants to get the ball rolling?", "We need to get the ball rolling now."], exKo: ["이 프로젝트를 이제 실행에 옮깁시다.", "누가 먼저 시작해 볼까요?", "지금 바로 시작해야 합니다."] },
+            { en: "Think outside the box", ko: "고정관념에서 벗어나다, 창의적으로 생각하다", ex: ["We need to think outside the box.", "Try to think outside the box for a solution.", "She always thinks outside the box."], exKo: ["우리는 새로운 시각으로 생각해야 해요.", "해결책을 위해 창의적으로 생각해 보세요.", "그녀는 항상 고정관념을 깬 생각을 한다."] },
+            { en: "Hit the nail on the head", ko: "핵심을 찌르다, 정답을 맞히다", ex: ["You hit the nail on the head with that point.", "Exactly! You hit the nail on the head.", "He really hit the nail on the head."], exKo: ["네가 방금 말한 게 바로 핵심이야.", "정확해! 네 말이 딱 맞아.", "그는 정말 정곡을 찔렀어."] },
+            { en: "Burn the midnight oil", ko: "밤늦게까지 공부/일하다", ex: ["I had to burn the midnight oil to finish.", "She's been burning the midnight oil lately.", "Stop burning the midnight oil every day."], exKo: ["끝내기 위해 밤늦게까지 야근해야 했어.", "그녀는 최근 밤낮없이 일하고 있어.", "매일 밤샘 작업하는 것 좀 그만해."] },
+            { en: "Keep someone in the loop", ko: "~에게 상황을 계속 알려주다", ex: ["Please keep me in the loop.", "I'll keep you in the loop on any changes.", "Is everyone kept in the loop?"], exKo: ["진행 상황을 계속 저에게 공유해 주세요.", "변경 사항이 있으면 계속 알려드릴게요.", "모두가 상황을 공유받고 있나요?"] },
+            { en: "Touch base", ko: "연락하다, 상황을 확인하다", ex: ["Let's touch base next week.", "I just wanted to touch base with you.", "We should touch base before the meeting."], exKo: ["다음 주에 다시 연락해서 확인합시다.", "그냥 잘 진행되는지 확인차 연락드렸어요.", "회의 전에 서로 상황을 맞춰봐야 해요."] },
+            { en: "Up in the air", ko: "아직 결정되지 않은, 불확실한", ex: ["Our travel plans are still up in the air.", "The deal is still up in the air.", "Everything is up in the air right now."], exKo: ["우리 여행 계획은 아직 불확실해요.", "그 계약은 아직 결정된 바가 없습니다.", "지금은 모든 게 불투명한 상태예요."] },
+            { en: "Bring to the table", ko: "이익을 가져오다, 기여하다", ex: ["What do you bring to the table?", "She brings years of experience to the table.", "He brings a lot of energy to the table."], exKo: ["당신은 우리 팀에 어떤 기여를 할 수 있나요?", "그녀는 수년간의 경험이라는 자산을 가지고 있습니다.", "그는 팀에 엄청난 에너지를 가져다줍니다."] },
+            { en: "Play it by ear", ko: "그때그때 봐서 정하다, 임기응변으로 하다", ex: ["Let's play it by ear and see how it goes.", "I don't have a plan, let's play it by ear.", "We'll just play it by ear."], exKo: ["상황 봐서 그때그때 정합시다.", "계획은 없으니 그냥 상황에 맞게 하죠.", "그냥 임기응변으로 처리할 거예요."] },
+            { en: "Long story short", ko: "결론만 말하자면, 요약하자면", ex: ["Long story short, we won the contract.", "Long story short, I missed the flight.", "Long story short, it's a mess."], exKo: ["결론만 말하면, 우리가 계약 따냈어.", "요약하자면, 나 비행기 놓쳤어.", "짧게 말해서, 완전 엉망진창이야."] },
+            { en: "In the long run", ko: "장기적으로 보면", ex: ["It will save us money in the long run.", "In the long run, this is better.", "Think about what happens in the long run."], exKo: ["장기적으로 보면 이게 돈을 아껴줄 거야.", "멀리 내다보면 이게 더 낫습니다.", "장기적으로 어떤 일이 생길지 생각하세요."] },
+            { en: "Call the shots", ko: "결정권을 갖다, 지휘하다", ex: ["He's the one who calls the shots here.", "I want to be the one calling the shots.", "Who's calling the shots in this project?"], exKo: ["여기서 결정권을 가진 사람은 그분입니다.", "내가 주도적으로 결정하는 사람이 되고 싶어.", "이 프로젝트의 지휘자는 누구인가요?"] },
+            { en: "Best of both worlds", ko: "두 마리 토끼를 다 잡다, 일석이조", ex: ["It's the best of both worlds.", "Working from home gives me the best of both worlds.", "Enjoy the best of both worlds."], exKo: ["그거야말로 일석이조죠.", "재택근무는 두 가지 장점을 다 누리게 해 줘요.", "두 마리 토끼를 다 잡는 기분을 느껴보세요."] },
+            { en: "Through thick and thin", ko: "좋을 때나 나쁠 때나, 고락을 함께하며", ex: ["They stayed together through thick and thin.", "I'll support you through thick and thin.", "Friends through thick and thin."], exKo: ["그들은 모든 고난을 함께 겪으며 함께했다.", "어떤 상황에서도 널 지지할게.", "우리는 고락을 함께한 친구 사이다."] },
+            { en: "Once in a blue moon", ko: "극히 드물게, 가뭄에 콩 나듯", ex: ["He visits us once in a blue moon.", "I eat fast food once in a blue moon.", "It happens only once in a blue moon."], exKo: ["그는 아주 어쩌다 한 번 우리를 방문해.", "나는 패스트푸드를 정말 가끔씩만 먹어.", "그런 일은 진짜 드물게 일어나요."] },
+            { en: "Take it with a grain of salt", ko: "걸러서 듣다, 곧이곧대로 믿지 않다", ex: ["Take his advice with a grain of salt.", "I took the news with a grain of salt.", "You should take it with a grain of salt."], exKo: ["그의 조언은 그냥 적당히 걸러서 들어.", "나는 그 뉴스를 100% 믿지는 않았어.", "그건 너무 곧이곧대로 믿지 않는 게 좋아."] },
+            { en: "Under the radar", ko: "눈에 띄지 않게, 몰래", ex: ["They kept the project under the radar.", "He tried to stay under the radar.", "The change went under the radar."], exKo: ["그들은 그 프로젝트를 비밀리에 진행했다.", "그는 사람들의 눈에 띄지 않으려 노력했다.", "그 변화는 아무도 모르게 지나갔다."] },
+            { en: "Cutting edge", ko: "최첨단의", ex: ["This is cutting-edge technology.", "We use cutting-edge methods.", "At the cutting edge of science."], exKo: ["이것은 최첨단 기술입니다.", "우리는 최신 기법을 사용합니다.", "과학의 최전선(최첨단)에서."] },
+            { en: "The elephant in the room", ko: "모두가 알지만 말하기 꺼리는 심각한 문제", ex: ["Let's talk about the elephant in the room.", "No one mentioned the elephant in the room.", "The debt is the elephant in the room."], exKo: ["다들 피하고 있는 그 주제에 대해 얘기해 보죠.", "아무도 그 명백한 문제에 대해 말하지 않았다.", "그 부채가 바로 모두가 쉬쉬하는 큰 문제다."] },
+            { en: "Wrap your head around", ko: "이해하려고 애쓰다, 납득하다", ex: ["I can't wrap my head around this math.", "Hard to wrap my head around the news.", "Take time to wrap your head around it."], exKo: ["이 수학 문제는 도저히 이해가 안 돼.", "그 소식은 참 받아들이기 어렵네요.", "천천히 시간을 갖고 이해해 보세요."] },
+            { en: "Keep your chin up", ko: "기운 내, 낙담하지 마", ex: ["Keep your chin up, things will get better.", "I told him to keep his chin up.", "Keep your chin up, you did your best."], exKo: ["기운 내, 다 잘될 거야.", "그에게 낙담하지 말라고 말해줬어.", "고개 들어, 넌 최선을 다했어."] },
+            { en: "Burn bridges", ko: "관계를 완전히 끊다, 배수진을 치다", ex: ["Don't burn your bridges when you leave.", "He burned his bridges with that company.", "I didn't want to burn any bridges."], exKo: ["회사를 떠날 때 관계를 망치지 마세요.", "그는 그 회사와 인연을 완전히 끊어버렸다.", "나는 누구와도 척지고 싶지 않았어."] },
+            { en: "Hold your horses", ko: "서두르지 마, 진정해", ex: ["Hold your horses! Let's think first.", "Hold your horses, we're not ready.", "Tell him to hold his horses."], exKo: ["잠깐만 진정해! 먼저 생각부터 하자.", "서두르지 마, 우리 아직 준비 안 됐어.", "그에게 좀 진정하라고 말해."] },
+            { en: "Ahead of the curve", ko: "남보다 앞서가는, 유행을 선도하는", ex: ["Our company is ahead of the curve.", "He's always ahead of the curve.", "Staying ahead of the curve is hard."], exKo: ["우리 회사는 트렌드를 앞서가고 있습니다.", "그는 항상 남들보다 한발 앞서가요.", "남보다 앞서 나가는 것은 어렵습니다."] },
+            { en: "A change of heart", ko: "심경의 변화", ex: ["She had a change of heart about the job.", "What caused the change of heart?", "I had a sudden change of heart."], exKo: ["그녀는 그 일에 대해 마음이 바뀌었다.", "무엇 때문에 마음이 바뀌었나요?", "갑자기 심경의 변화가 생겼어."] },
+            { en: "In the red", ko: "적자인", ex: ["The company is still in the red.", "I'm in the red this month.", "We need to get out of the red."], exKo: ["회사가 여전히 적자 상태입니다.", "나 이번 달에 마이너스야(적자야).", "우리는 적자에서 벗어나야 합니다."] },
+            { en: "Cut corners", ko: "절차를 생략하다, (돈/시간을 아끼려) 편법을 쓰다", ex: ["Don't cut corners on safety.", "They cut corners to finish early.", "We can't afford to cut corners."], exKo: ["안전에 있어서 편법을 쓰지 마세요.", "그들은 빨리 끝내려고 절차를 무시했다.", "우리는 대충대충 할 여유가 없습니다."] },
+            { en: "In the black", ko: "흑자인", ex: ["The company is finally in the black.", "We're back in the black this year.", "How to stay in the black."], exKo: ["회사가 드디어 흑자로 돌아섰다.", "올해 우리는 다시 흑자가 되었다.", "흑자를 유지하는 방법."] },
+            { en: "Get a grip", ko: "정신 차려, 평정심을 찾아", ex: ["Get a grip on yourself!", "I need to get a grip.", "He finally got a grip on reality."], exKo: ["정신 좀 차려!", "나 평정심을 좀 찾아야겠어.", "그는 마침내 현실을 직시했다."] },
+            { en: "Play devil's advocate", ko: "일부러 반대 의견을 제시하다", ex: ["Let me play devil's advocate for a moment.", "She played devil's advocate during the meeting.", "He's just playing devil's advocate."], exKo: ["제가 잠시만 반대 입장에서 말해볼게요.", "그녀는 회의 중 일부러 반대 의견을 냈다.", "그는 그냥 토론을 위해 반대 의견을 내는 거야."] },
+            { en: "Pull out all the stops", ko: "모든 수단을 동원하다, 온 힘을 다하다", ex: ["They pulled out all the stops for the party.", "We must pull out all the stops to win.", "The city pulled out all the stops."], exKo: ["그들은 파티를 위해 모든 수단을 동원했다.", "이기기 위해 온 힘을 다해야 한다.", "도시는 가능한 모든 조치를 취했다."] },
+            { en: "Sleep on it", ko: "심사숙고하다, 하룻밤 자며 생각해보다", ex: ["Don't decide now, sleep on it.", "I'll sleep on it and tell you tomorrow.", "She needs to sleep on it."], exKo: ["지금 결정하지 말고 하룻밤 생각해보렴.", "생각 좀 해보고 내일 말해줄게.", "그녀는 심사숙고할 시간이 필요하다."] },
+            { en: "The best of both worlds", ko: "일석이조, 양쪽의 장점을 다 가짐", ex: ["It's the best of both worlds.", "He has the best of both worlds.", "Enjoying the best of both worlds."], exKo: ["그것은 일석이조다.", "그는 두 가지 장점을 모두 누리고 있다.", "두 세계의 장점을 모두 즐기기."] },
+            { en: "Hit the books", ko: "열공하다, 공부를 시작하다", ex: ["I need to hit the books tonight.", "Time to hit the books!", "He's hitting the books for the exam."], exKo: ["나 오늘 밤에 열공해야 해.", "공부 시작할 시간이야!", "그는 시험을 위해 열공 중이다."] },
+            { en: "Under the counter", ko: "비밀리에, 불법적으로", ex: ["They sold cigarettes under the counter.", "Items bought under the counter.", "Dealing under the counter."], exKo: ["그들은 담배를 몰래 팔았다.", "암거래로 산 물건들.", "비밀 거래하기."] },
+            { en: "Wait for the dust to settle", ko: "사태가 진정되기를 기다리다", ex: ["Let's wait for the dust to settle.", "Wait for the dust to settle after the move.", "Once the dust settled, we talked."], exKo: ["상황이 좀 가라앉을 때까지 기다려보자.", "이사 후 사태가 정리되길 기다려라.", "상황이 진정된 후에 우리는 대화했다."] },
+            { en: "Beat around the bush", ko: "돌려서 말하다, 요점을 피하다", ex: ["Stop beating around the bush!", "Don't beat around the bush and say it.", "He kept beating around the bush."], exKo: ["말 돌리지 마!", "빙빙 돌리지 말고 그냥 말해.", "그는 계속 요점을 피했다."] },
+            { en: "Cold feet", ko: "겁이 남, 갑자기 마음이 내키지 않음", ex: ["He got cold feet before the wedding.", "Don't get cold feet now!", "I'm starting to get cold feet."], exKo: ["그는 결혼식 직전에 겁을 먹었다.", "이제 와서 꽁무니 빼지 마!", "나 슬슬 겁이 나기 시작해."] },
+            { en: "Give someone the cold shoulder", ko: "~를 쌀쌀맞게 대하다, 무시하다", ex: ["She gave me the cold shoulder.", "Why are you giving him the cold shoulder?", "I got the cold shoulder from them."], exKo: ["그녀는 나를 냉대했다.", "왜 그를 무시하는 거야?", "나는 그들에게 무시당했다."] },
+            { en: "Go down in flames", ko: "참담하게 실패하다", ex: ["The project went down in flames.", "His career went down in flames.", "The plan went down in flames."], exKo: ["프로젝트가 완전히 실패로 돌아갔다.", "그의 경력은 참담하게 끝났다.", "계획은 수포로 돌아갔다."] },
+            { en: "Jump on the bandwagon", ko: "시류에 편승하다, 유행을 따르다", ex: ["Everyone is jumping on the bandwagon.", "Don't just jump on the bandwagon.", "Companies jumped on the AI bandwagon."], exKo: ["모두가 그 유행을 따르고 있다.", "그냥 남들 한다고 따라 하지 마.", "기업들이 AI 열풍에 합류했다."] },
+            { en: "Keep your head above water", ko: "간신히 버티다, 경제적으로 연명하다", ex: ["Just trying to keep my head above water.", "Hard to keep our head above water.", "Staying afloat and keeping head above water."], exKo: ["그저 간신히 버티려고 노력 중이야.", "현상 유지하는 것도 힘들다.", "경제적으로 간신히 버티기."] },
+            { en: "Let the cat out of the bag", ko: "비밀을 누설하다", ex: ["Who let the cat out of the bag?", "Don't let the cat out of the bag yet.", "She let the cat out of the bag by accident."], exKo: ["누가 비밀을 발설했어?", "아직 비밀을 말하지 마.", "그녀가 실수로 비밀을 누설했다."] },
+            { en: "Make a long story short", ko: "간단히 말하자면", ex: ["To make a long story short, I quit.", "Long story short, we won.", "Make a long story short, it's over."], exKo: ["간단히 말하자면, 나 그만뒀어.", "짧게 말해, 우리가 이겼어.", "결론만 말하면, 다 끝났어."] },
+            { en: "Miss the boat", ko: "기회를 놓치다", ex: ["You missed the boat on that deal.", "Don't miss the boat!", "I'm afraid I missed the boat."], exKo: ["그 거래 기회를 놓치셨네요.", "기회를 놓치지 마세요!", "아무래도 기회를 놓친 것 같아."] },
+            { en: "No-brainer", ko: "생각할 필요도 없는 쉬운 결정", ex: ["It's a no-brainer!", "Choosing him was a no-brainer.", "This decision is a no-brainer."], exKo: ["그건 당연한 거지!", "그를 선택한 건 당연한 일이었어.", "이 결정은 고민할 필요도 없어."] },
+            { en: "On the fence", ko: "결정을 못 내린, 중립적인", ex: ["I'm still on the fence about it.", "Are you on the fence?", "He's sitting on the fence."], exKo: ["난 아직 고민 중이야.", "결정 못 했니?", "그는 애매한 태도를 보이고 있다."] },
+            { en: "Out of the loop", ko: "상황을 잘 모르는, 소외된", ex: ["I've been out of the loop lately.", "Don't leave me out of the loop.", "He's completely out of the loop."], exKo: ["나 요즘 돌아가는 상황을 잘 몰라.", "나만 빼놓지 마.", "그는 전혀 상황 파악을 못 하고 있어."] },
+            { en: "See eye to eye", ko: "의견이 일치하다", ex: ["We don't always see eye to eye.", "Glad we see eye to eye on this.", "They finally saw eye to eye."], exKo: ["우리가 항상 의견이 맞는 건 아니야.", "이 점에 대해 의견이 같아서 다행이야.", "그들은 마침내 합의를 봤다."] },
+            { en: "Steal someone's thunder", ko: "~의 공을 가로채다, 관심을 뺏다", ex: ["Don't steal my thunder!", "He stole her thunder at the meeting.", "She didn't mean to steal your thunder."], exKo: ["내 공을 가로채지 마!", "그는 회의에서 그녀가 받을 관심을 뺏어갔다.", "그녀는 네 관심을 뺏으려던 게 아니었어."] },
+            { en: "Take with a grain of salt", ko: "걸러서 듣다", ex: ["Take it with a grain of salt.", "I took his words with a grain of salt.", "Always take rumors with a grain of salt."], exKo: ["그냥 적당히 걸러서 들어.", "그의 말을 곧이곧대로 믿지 않았어.", "소문은 항상 걸러서 들어야 한다."] },
+            { en: "The ball is in your court", ko: "이제 네 차례다, 결정권이 너에게 있다", ex: ["The ball is in your court now.", "It's your move, the ball is in your court.", "I've done my part, the ball is in your court."], exKo: ["이제 네가 결정할 차례야.", "네가 어떻게 할지에 달렸어.", "내 할 일은 다 했으니 이제 네 차례야."] },
+            { en: "Up in the air", ko: "아직 미정인", ex: ["Everything is still up in the air.", "Plans are up in the air.", "The future of the company is up in the air."], exKo: ["모든 게 아직 정해지지 않았어.", "계획이 불투명해.", "회사의 미래가 불확실하다."] },
+            { en: "Your guess is as good as mine", ko: "나도 모르긴 마찬가지다", ex: ["Where is he? Your guess is as good as mine.", "What's next? Your guess is as good as mine.", "I don't know, your guess is as good as mine."], exKo: ["그가 어디 있냐고? 나도 모르긴 마찬가지야.", "다음은 뭐야? 나도 모르겠어.", "몰라, 나도 너만큼이나 아는 게 없어."] },
+            { en: "Barking up the wrong tree", ko: "번지수를 잘못 찾다", ex: ["You're barking up the wrong tree.", "He's barking up the wrong tree with that.", "If you think I did it, you're barking up the wrong tree."], exKo: ["너 번지수 잘못 짚었어.", "그는 그 일에 대해 헛물켜고 있어.", "내가 했다고 생각한다면 착각이야."] },
+            { en: "Beat the clock", ko: "시간 안에 끝내다", ex: ["We managed to beat the clock.", "Can we beat the clock?", "They raced to beat the clock."], exKo: ["우리는 가까스로 시간 내에 마쳤다.", "우리가 시간 안에 할 수 있을까?", "그들은 시간을 맞추기 위해 서둘렀다."] },
+            { en: "Call it a day", ko: "마무리하다", ex: ["Let's call it a day.", "Time to call it a day.", "Should we call it a day?"], exKo: ["오늘 여기까지 하죠.", "마무리할 시간이야.", "이만 끝낼까요?"] },
+            { en: "Catch someone's eye", ko: "눈길을 끌다", ex: ["She caught my eye.", "That dress caught her eye.", "A bright sign caught his eye."], exKo: ["그녀가 내 눈에 띄었다.", "저 드레스가 그녀의 눈길을 사로잡았다.", "밝은 간판이 그의 시선을 끌었다."] },
+            { en: "Cry over spilled milk", ko: "이미 엎질러진 물", ex: ["Don't cry over spilled milk.", "It's no use crying over spilled milk.", "Stop crying over spilled milk and fix it."], exKo: ["이미 지나간 일로 후회하지 마.", "이미 엎질러진 물이야.", "후회는 그만하고 해결책을 찾아."] },
+            { en: "Cut to the chase", ko: "본론으로 들어가다", ex: ["Cut to the chase, please.", "Let's cut to the chase.", "I'll cut to the chase and tell you."], exKo: ["본론만 말해주세요.", "본론으로 들어갑시다.", "바로 본론을 말씀드릴게요."] },
+            { en: "Every cloud has a silver lining", ko: "전화위복, 고생 끝에 낙이 온다", ex: ["Remember, every cloud has a silver lining.", "I believe every cloud has a silver lining.", "Looking for the silver lining."], exKo: ["하늘이 무너져도 솟아날 구멍은 있다는 걸 기억해.", "나쁜 상황에도 좋은 면은 있다고 믿어.", "희망의 빛을 찾아서."] },
+            { en: "Get out of hand", ko: "감당할 수 없게 되다", ex: ["The party got out of hand.", "Don't let things get out of hand.", "It quickly got out of hand."], exKo: ["파티가 걷잡을 수 없이 커졌다.", "상황이 악화되게 두지 마세요.", "금세 감당할 수 없게 되었다."] },
+            { en: "Hit the nail on the head", ko: "정곡을 찌르다", ex: ["You hit the nail on the head.", "He really hit the nail on the head.", "She hit the nail on the head with her comment."], exKo: ["네 말이 정답이야.", "그는 정말 정곡을 찔렀어.", "그녀의 코멘트는 핵심을 꿰뚫었다."] },
+            { en: "In the heat of the moment", ko: "욱해서, 한창 흥분해서", ex: ["I said it in the heat of the moment.", "Done in the heat of the moment.", "Don't decide in the heat of the moment."], exKo: ["내가 욱해서 그 말을 해버렸어.", "흥분한 상태에서 벌어진 일이야.", "욱해서 결정하지 마세요."] },
+            { en: "Keep an eye on", ko: "~을 계속 지켜보다", ex: ["Keep an eye on the baby.", "Can you keep an eye on my bag?", "Keep a close eye on the stock."], exKo: ["아기를 계속 봐주세요.", "내 가방 좀 봐줄 수 있어?", "주식을 주의 깊게 지켜봐라."] },
+            { en: "Kill two birds with one stone", ko: "일석이조", ex: ["Let's kill two birds with one stone.", "I killed two birds with one stone today.", "A way to kill two birds with one stone."], exKo: ["일석이조로 해결하자.", "나 오늘 한 번에 두 가지 일을 해결했어.", "일거양득의 방법."] },
+            { en: "Let someone off the hook", ko: "~를 봐주다, 책임을 면해주다", ex: ["I'll let you off the hook this time.", "Don't let him off the hook.", "He was let off the hook."], exKo: ["이번 한 번만 봐줄게.", "그를 그냥 넘어가게 하지 마.", "그는 책임을 면했다."] },
+            { en: "Make a long story short", ko: "간단히 말해서", ex: ["Make a long story short, we failed.", "Long story short, I'm here.", "To make a long story short..."], exKo: ["요약하자면, 우린 실패했어.", "결론만 말하면, 나 여기 있어.", "짧게 말하자면..."] },
+            { en: "On the ball", ko: "상황 판단이 빠른, 유능한", ex: ["He's really on the ball.", "You need to be on the ball today.", "She is always on the ball."], exKo: ["그는 정말 빠릿빠릿해.", "너 오늘 정신 바짝 차려야 해.", "그녀는 항상 유능하다."] },
+            { en: "Once in a blue moon", ko: "아주 드물게", ex: ["I see him once in a blue moon.", "It happens once in a blue moon.", "Once in a blue moon, I go out."], exKo: ["나는 그를 아주 가끔 봐.", "그런 일은 가뭄에 콩 나듯 일어나.", "정말 어쩌다 한 번 외출해."] },
+            { en: "Piece of cake", ko: "식은 죽 먹기", ex: ["It's a piece of cake.", "The task was a piece of cake.", "Learning English is a piece of cake."], exKo: ["그건 껌이지.", "그 업무는 아주 쉬웠어.", "영어 배우는 건 아주 쉬워."] },
+            { en: "Pull someone's leg", ko: "농담하다, 놀리다", ex: ["Are you pulling my leg?", "I'm just pulling your leg.", "Stop pulling my leg!"], exKo: ["지금 장난해?", "그냥 농담이야.", "그만 좀 놀려!"] },
+            { en: "Rule of thumb", ko: "경험에 비추어 본 일반 원칙", ex: ["A good rule of thumb is...", "Follow the rule of thumb.", "My rule of thumb is this."], exKo: ["일반적인 원칙은...", "경험칙을 따르세요.", "내 원칙은 이래."] },
+            { en: "Sit on the fence", ko: "애매한 태도를 취하다", ex: ["Don't sit on the fence.", "He's still sitting on the fence.", "Stop sitting on the fence and decide."], exKo: ["애매하게 있지 마.", "그는 여전히 결정을 못 내리고 있어.", "그만 재고 결정 좀 해."] },
+            { en: "The best of both worlds", ko: "일석이조", ex: ["It's the best of both worlds.", "He has the best of both worlds.", "Enjoy the best of both worlds."], exKo: ["양쪽 다 좋지 뭐.", "그는 두 가지 이점을 다 가졌어.", "일석이조를 즐기세요."] },
+            { en: "Under the weather", ko: "몸이 좀 안 좋은", ex: ["I'm feeling under the weather.", "He's a bit under the weather.", "Are you under the weather?"], exKo: ["몸 컨디션이 별로야.", "그는 몸이 좀 아파.", "너 어디 아프니?"] },
+            { en: "Whole nine yards", ko: "전부 다, 모든 것", ex: ["He gave me the whole nine yards.", "I want the whole nine yards.", "We did the whole nine yards."], exKo: ["그는 나에게 모든 것을 다 알려줬어.", "나는 전부 다 원해.", "우리는 할 수 있는 건 다 했어."] },
+            { en: "Zero in on", ko: "~에 집중하다, 조준하다", ex: ["Zero in on the target.", "Let's zero in on the main issue.", "They zeroed in on the problem."], exKo: ["목표에 집중하세요.", "주요 이슈에 초점을 맞춥시다.", "그들은 문제를 정확히 짚어냈다."] },
+            { en: "A penny for your thoughts", ko: "무슨 생각해?", ex: ["A penny for your thoughts?", "You look quiet, a penny for your thoughts?", "Tell me, a penny for your thoughts."], exKo: ["무슨 생각 하니?", "조용하네, 무슨 고민 있어?", "말해봐, 무슨 생각해?"] },
+            { en: "Back to square one", ko: "다시 원점으로", ex: ["We're back to square one.", "It's back to square one for us.", "Don't make us go back to square one."], exKo: ["우리 다시 처음으로 돌아왔어.", "원점에서 다시 시작해야 해.", "우리를 다시 원점으로 돌려놓지 마."] },
+            { en: "Bark up the wrong tree", ko: "잘못 짚다", ex: ["You're barking up the wrong tree.", "He's barking up the wrong tree.", "Stop barking up the wrong tree."], exKo: ["너 번지수 잘못 짚었어.", "그는 착각하고 있어.", "잘못된 곳에서 찾지 마."] },
+            { en: "Beating a dead horse", ko: "이미 끝난 일을 다시 거론하다", ex: ["Stop beating a dead horse.", "It's like beating a dead horse.", "I don't want to beat a dead horse."], exKo: ["이미 끝난 얘기 그만해.", "그건 시간 낭비일 뿐이야.", "뒷북치고 싶지 않아."] },
+            { en: "Bite off more than you can chew", ko: "무리스러운 일을 벌이다", ex: ["Don't bite off more than you can chew.", "I bit off more than I could chew.", "He tends to bite off more than he can chew."], exKo: ["과욕 부리지 마.", "내가 내 분수에 넘치는 일을 했어.", "그는 항상 무리한 계획을 세운다."] },
+            { en: "Blessing in disguise", ko: "전화위복", ex: ["It was a blessing in disguise.", "Losing my job was a blessing in disguise.", "A hidden blessing in disguise."], exKo: ["그건 불행 중 다행이었어.", "실직한 게 오히려 잘된 일이었어.", "알고 보니 큰 복이었네."] },
+            { en: "Burn the candle at both ends", ko: "몹시 무리하다, 밤낮으로 일하다", ex: ["Don't burn the candle at both ends.", "He's burning the candle at both ends.", "You look tired from burning the candle at both ends."], exKo: ["너무 무리하지 마.", "그는 밤낮없이 무리해서 일하고 있어.", "너무 무리해서 피곤해 보이네."] },
+            { en: "Call it a night", ko: "이만 자다, 밤 업무를 마치다", ex: ["Let's call it a night.", "Time to call it a night.", "I'm calling it a night."], exKo: ["오늘은 이만 자자.", "이제 잘 시간이야.", "난 이제 자러 갈게."] },
+                        { en: "Cut somebody some slack", ko: "~를 좀 봐주다, 덜 몰아붙이다", ex: ["Cut him some slack, he's new.", "Can you cut me some slack?", "They need to cut us some slack."], exKo: ["그를 좀 봐줘, 처음이잖아.", "나 좀 봐줄 수 없어?", "그들이 우리를 좀 덜 몰아붙여야 해."] },
+            { en: "Don't give up your day job", ko: "본업이나 계속해 (재능이 없으니 꿈 깨라는 농담)", ex: ["Your singing is... don't give up your day job.", "Funny, but don't give up your day job.", "I think you should not give up your day job."], exKo: ["노래 실력이 좀... 본업이나 열심히 해.", "웃기긴 한데, 그냥 원래 하던 일 해.", "내가 보기엔 넌 본업에 충실해야 할 것 같아."] },
+            { en: "Easy does it", ko: "조심조심해, 천천히 해", ex: ["Easy does it, it's fragile.", "Easy does it, don't drop it.", "Just easy does it."], exKo: ["조심조심해, 이거 깨지기 쉬워.", "살살해, 떨어뜨리지 말고.", "그냥 천천히 조심해서 해."] },
+            { en: "Get something out of your system", ko: "하고 싶은 걸 해서 후련해지다", ex: ["Go dance and get it out of your system.", "I need to get this anger out of my system.", "He got it out of his system."], exKo: ["가서 춤추고 속 시원하게 풀어버려.", "이 화를 다 쏟아내고 후련해져야겠어.", "그는 하고 싶은 걸 다 해서 미련이 없어."] },
+            { en: "Give someone the benefit of the doubt", ko: "속는 셈 치고 믿어주다", ex: ["Let's give him the benefit of the doubt.", "I'll give you the benefit of the doubt this time.", "She deserves the benefit of the doubt."], exKo: ["일단 믿어보자.", "이번 한 번만 속는 셈 치고 믿어줄게.", "그녀는 믿어줄 만한 가치가 있어."] },
+            { en: "Go back to the drawing board", ko: "원점으로 돌아가 다시 시작하다", ex: ["It failed, so back to the drawing board.", "We need to go back to the drawing board.", "Back to the drawing board for us."], exKo: ["실패했으니 처음부터 다시 해야지.", "우리는 다시 원점으로 돌아가야 해.", "우리는 다시 처음부터 시작이야."] },
+            { en: "Hang in there", ko: "조금만 더 버텨, 힘내", ex: ["Hang in there, things will get better.", "I'm trying to hang in there.", "Hang in there, you can do it!"], exKo: ["조금만 버텨, 다 좋아질 거야.", "나도 어떻게든 버텨보려고 해.", "조금만 더 힘내, 넌 할 수 있어!"] },
+            { en: "Hit the hay", ko: "잠자리에 들다", ex: ["I'm ready to hit the hay.", "Time for me to hit the hay.", "I hit the hay early last night."], exKo: ["나 이제 자러 갈 준비 됐어.", "이제 자야 할 시간이네.", "나 어제 일찍 잤어."] },
+            { en: "Keep your fingers crossed", ko: "행운을 빌어줘", ex: ["Keep your fingers crossed for me.", "I'm keeping my fingers crossed.", "Let's keep our fingers crossed."], exKo: ["나를 위해 행운을 빌어줘.", "행운을 빌고 있어.", "우리 행운을 빌어보자."] },
+            { en: "Let someone off the hook", ko: "책임을 면해주다, 봐주다", ex: ["I'll let you off the hook this time.", "Don't let him off the hook easily.", "He was let off the hook."], exKo: ["이번만 봐줄게.", "그를 쉽게 놓아주지 마.", "그는 책임을 면했다."] },
+            { en: "Make a long story short", ko: "결론만 말하자면", ex: ["To make a long story short, we're lost.", "Long story short, I won.", "Well, make a long story short..."], exKo: ["결론만 말하면, 우리 길 잃었어.", "요약하자면, 내가 이겼어.", "뭐, 짧게 말하자면..."] },
+            { en: "Miss the boat", ko: "기차를 놓치다 (기회를 놓치다)", ex: ["I'm afraid you missed the boat.", "Don't miss the boat on this deal.", "I missed the boat again."], exKo: ["기회를 놓치신 것 같네요.", "이 거래 기회를 놓치지 마세요.", "나 또 기회를 놓쳤어."] },
+            { en: "No pain, no gain", ko: "고통 없이는 얻는 것도 없다", ex: ["Work harder, no pain, no gain!", "I know it's hard, but no pain, no gain.", "As they say, no pain, no gain."], exKo: ["더 열심히 해, 고통 없인 얻는 것도 없어!", "힘든 건 알지만, 고생해야 얻는 게 있지.", "말 그대로, 노 페인 노 게인이야."] },
+            { en: "On the ball", ko: "빠릿빠릿한, 유능한", ex: ["She's really on the ball.", "You need to be on the ball today.", "He's always on the ball at work."], exKo: ["그녀는 정말 빠릿빠릿해.", "너 오늘 정신 바짝 차려야 해.", "그는 회사에서 항상 유능해."] },
+            { en: "Pull yourself together", ko: "정신 차려, 마음을 가다듬어", ex: ["Pull yourself together and focus!", "I need to pull myself together.", "She finally pulled herself together."], exKo: ["정신 좀 차리고 집중해!", "나 마음을 좀 가다듬어야겠어.", "그녀는 마침내 기운을 차렸다."] },
+            { en: "So far so good", ko: "지금까지는 좋아 (순조로워)", ex: ["How's the project? So far so good.", "So far so good, no problems yet.", "Is it working? So far so good."], exKo: ["프로젝트 어때? 지금까지는 괜찮아.", "아직까진 좋아, 문제없어.", "잘 되고 있어? 지금까지는 순조로워."] },
+            { en: "Speak of the devil", ko: "호랑이도 제 말 하면 온다더니", ex: ["Speak of the devil, here he comes.", "We were just talking about you, speak of the devil.", "Speak of the devil!"], exKo: ["호랑이도 제 말 하면 온다더니, 저기 오네.", "방금 네 얘기 중이었는데, 진짜 나타났네.", "말이 씨가 됐네!"] },
+            { en: "That's the last straw", ko: "더 이상은 못 참아 (한계점)", ex: ["This is the last straw!", "That's the last straw, I'm quitting.", "The last straw was the noise."], exKo: ["이건 정말 더는 못 참아!", "이제 한계야, 나 그만둘래.", "결정적인 계기는 그 소음이었어."] },
+            { en: "The best of both worlds", ko: "일석이조, 양쪽의 장점을 다 가짐", ex: ["You get the best of both worlds.", "It's the best of both worlds, really.", "Enjoy the best of both worlds."], exKo: ["두 마리 토끼를 다 잡는 셈이지.", "그건 정말 일석이조야.", "두 가지 장점을 다 누리세요."] },
+            { en: "Time flies when you're having fun", ko: "즐거울 땐 시간이 빨리 간다", ex: ["Is it 10 PM? Time flies when you're having fun.", "Time flies when you're having fun, right?", "Indeed, time flies when you're having fun."], exKo: ["벌써 10시라고? 즐거우니 시간 금방 가네.", "재밌으면 시간 빨리 가잖아, 그치?", "정말이지, 즐거우면 시간이 화살 같아."] },
+            { en: "To make matters worse", ko: "설상가상으로, 상황을 더 악화시키자면", ex: ["To make matters worse, it started raining.", "He was late, and to make matters worse, he lost his keys.", "Then, to make matters worse..."], exKo: ["설상가상으로 비까지 내리기 시작했어.", "그는 늦은 데다 설상가상으로 열쇠까지 잃어버렸어.", "그런데 상황이 더 안 좋게도..."] },
+            { en: "Under the weather", ko: "몸 상태가 좋지 않은", ex: ["I'm feeling a bit under the weather.", "He's under the weather today.", "Hope you're not under the weather."], exKo: ["몸 상태가 약간 안 좋아.", "그는 오늘 몸이 좀 안 좋대.", "아프지 않았으면 좋겠어."] },
+            { en: "We'll cross that bridge when we come to it", ko: "그 문제는 그때 가서 생각하자", ex: ["Don't worry now, we'll cross that bridge later.", "We'll cross that bridge when we come to it.", "Let's cross that bridge then."], exKo: ["지금 걱정하지 마, 그건 나중에 생각하자.", "그 일은 닥쳤을 때 고민하자고.", "그때 가서 해결하자."] },
+            { en: "Wrap your head around something", ko: "~을 이해하다, 받아들이다", ex: ["I can't wrap my head around this.", "Hard to wrap my head around the news.", "Can you wrap your head around it?"], exKo: ["난 이거 도저히 이해가 안 돼.", "그 소식은 참 받아들이기 어렵네.", "그거 이해할 수 있겠어?"] },
+            { en: "You can say that again", ko: "내 말이! (전적으로 동감할 때)", ex: ["It's hot today. You can say that again!", "This is hard. You can say that again.", "You can say that again, brother."], exKo: ["오늘 진짜 덥다. 내 말이 그 말이야!", "이거 어렵네. 정말 그래.", "진짜 맞는 말이야, 친구."] },
+            { en: "Your guess is as good as mine", ko: "나도 모르긴 마찬가지야", ex: ["Where is he? Your guess is as good as mine.", "What's next? Your guess is as good as mine.", "I don't know, your guess is as good as mine."], exKo: ["그가 어디 있냐고? 나도 모르긴 마찬가지야.", "다음은 뭐야? 나도 모르겠어.", "몰라, 나도 너만큼이나 아는 게 없어."] },
+            { en: "A bird in the hand is worth two in the bush", ko: "남의 돈 천 원보다 내 주머니 백 원이 낫다", ex: ["Keep the job, a bird in the hand is better.", "A bird in the hand is worth two in the bush.", "I'll take the bird in the hand."], exKo: ["그냥 그 직장 다녀, 확실한 게 좋은 거야.", "손안의 새 한 마리가 숲속의 두 마리보다 낫다.", "나는 확실한 이득을 택할래."] },
+            { en: "A blessing in disguise", ko: "전화위복, 불행 중 다행", ex: ["Losing that job was a blessing in disguise.", "It turned out to be a blessing in disguise.", "A real blessing in disguise."], exKo: ["직장을 잃은 게 오히려 잘된 일이었어.", "결국엔 전화위복이 되었지.", "정말 불행 중 다행이었어."] },
+            { en: "A penny for your thoughts", ko: "무슨 생각해?", ex: ["A penny for your thoughts?", "You look quiet, a penny for your thoughts?", "Tell me, a penny for your thoughts."], exKo: ["무슨 생각 하니?", "조용하네, 무슨 고민 있어?", "말해봐, 무슨 생각해?"] },
+            { en: "A penny saved is a penny earned", ko: "티끌 모아 태산", ex: ["Save your money, a penny saved is a penny earned.", "My dad always said, a penny saved is a penny earned.", "Well, a penny saved is a penny earned."], exKo: ["돈 아껴 써, 한 푼 아낀 게 한 푼 번 거야.", "우리 아빠는 항상 티끌 모아 태산이라고 하셨지.", "뭐, 아끼는 게 버는 거지."] },
+            { en: "A perfect storm", ko: "최악의 상황 (여러 악재가 겹침)", ex: ["It was a perfect storm of bad luck.", "The economy is facing a perfect storm.", "Welcome to the perfect storm."], exKo: ["불운이 겹치고 겹친 최악의 상황이었어.", "경제가 여러 악재가 겹친 위기에 처해 있어.", "최악의 시나리오에 오신 걸 환영합니다."] },
+            { en: "A picture paints a thousand words", ko: "백문이 불여일견 (사진 한 장이 낫다)", ex: ["Just show me, a picture paints a thousand words.", "A picture paints a thousand words, right?", "Look at this, a picture paints a thousand words."], exKo: ["그냥 보여줘, 백 마디 말보다 사진 한 장이 낫잖아.", "사진 한 장이 많은 걸 말해주지, 그치?", "이거 봐, 보는 게 믿는 거야."] },
+            { en: "Actions speak louder than words", ko: "말보다 행동이 중요하다", ex: ["Don't just talk, actions speak louder than words.", "Actions speak louder than words, you know.", "Prove it, actions speak louder than words."], exKo: ["말만 하지 마, 행동이 더 중요한 거야.", "말보다 행동이 앞서야 한다는 거 알잖아.", "증명해 봐, 말은 누구나 할 수 있어."] },
+            { en: "Add insult to injury", ko: "설상가상, 불난 집에 부채질", ex: ["Then he fired me, to add insult to injury.", "Stop adding insult to injury.", "It only adds insult to injury."], exKo: ["그러고는 나를 해고했어, 엎친 데 덮친 격이지.", "불난 집에 부채질 좀 하지 마.", "그건 상황만 더 악화시킬 뿐이야."] },
+            { en: "Barking up the wrong tree", ko: "번지수를 잘못 찾다", ex: ["You're barking up the wrong tree.", "He's barking up the wrong tree with that.", "If you think I did it, you're barking up the wrong tree."], exKo: ["너 번지수 잘못 짚었어.", "그는 그 일에 대해 헛물켜고 있어.", "내가 했다고 생각한다면 착각이야."] },
+            { en: "Beat around the bush", ko: "돌려서 말하다, 요점을 피하다", ex: ["Stop beating around the bush!", "Don't beat around the bush and say it.", "He kept beating around the bush."], exKo: ["말 돌리지 마!", "빙빙 돌리지 말고 그냥 말해.", "그는 계속 요점을 피했다."] },
+            { en: "Better late than never", ko: "늦더라도 안 하는 것보다 낫다", ex: ["You finally arrived! Better late than never.", "I finished it late, but better late than never.", "Better late than never, right?"], exKo: ["드디어 왔네! 안 오는 것보다 늦게라도 오는 게 낫지.", "늦게 끝냈지만, 안 하는 것보단 나아.", "늦는 게 안 하는 것보단 낫잖아, 그치?"] },
+            { en: "Bite off more than you can chew", ko: "과욕을 부리다, 무리하다", ex: ["Don't bite off more than you can chew.", "I bit off more than I could chew.", "He tends to bite off more than he can chew."], exKo: ["과욕 부리지 마.", "내가 내 분수에 넘치는 일을 했어.", "그는 항상 무리한 계획을 세운다."] },
+            { en: "Bite the bullet", ko: "매를 먼저 맞다, 고통을 참고 받아들이다", ex: ["I had to bite the bullet and do it.", "Bite the bullet and apologize.", "It's time to bite the bullet."], exKo: ["눈 딱 감고 참고 해야 했어.", "꾹 참고 가서 사과해.", "이제는 직면해야 할 시간이야."] },
+            { en: "Break the ice", ko: "서먹서먹한 분위기를 깨다", ex: ["He told a joke to break the ice.", "How should we break the ice?", "It helped to break the ice."], exKo: ["그는 분위기를 깨려고 농담을 던졌어.", "어떻게 분위기를 좀 띄워볼까?", "그게 서먹함을 없애는 데 도움이 됐어."] },
+            { en: "Burn bridges", ko: "배수진을 치다, 관계를 완전히 끊다", ex: ["Don't burn your bridges when you leave.", "He burned his bridges with that company.", "I didn't want to burn any bridges."], exKo: ["회사를 떠날 때 관계를 망치지 마세요.", "그는 그 회사와 인연을 완전히 끊어버렸다.", "나는 누구와도 척지고 싶지 않았어."] },
+            { en: "Burn the midnight oil", ko: "밤늦게까지 공부/일하다", ex: ["I had to burn the midnight oil to finish.", "She's been burning the midnight oil lately.", "Stop burning the midnight oil every day."], exKo: ["끝내기 위해 밤늦게까지 야근해야 했어.", "그녀는 최근 밤낮없이 일하고 있어.", "매일 밤샘 작업하는 것 좀 그만해."] },
+            { en: "By the skin of your teeth", ko: "가까스로, 간신히", ex: ["I passed the test by the skin of my teeth.", "He escaped by the skin of his teeth.", "We won by the skin of our teeth."], exKo: ["나 진짜 간발의 차로 시험 합격했어.", "그는 가까스로 탈출했어.", "우리는 정말 간신히 이겼어."] },
+            { en: "Compare apples to oranges", ko: "서로 다른 것을 비교하다 (비교 자체가 무의미함)", ex: ["You can't compare apples to oranges.", "That's like comparing apples to oranges.", "It's comparing apples to oranges, really."], exKo: ["그 두 개는 비교 대상이 아니야.", "그건 사과랑 오렌지를 비교하는 격이지.", "진짜 말도 안 되는 비교야."] },
+            { en: "Costs an arm and a leg", ko: "매우 비싸다, 등골이 휘다", ex: ["That house costs an arm and a leg.", "Repairs cost an arm and a leg.", "My new car cost an arm and a leg."], exKo: ["저 집은 정말 등골 휘게 비싸.", "수리비가 장난 아니게 많이 들었어.", "내 새 차는 진짜 거액을 주고 샀어."] },
+            { en: "Do something at the drop of a hat", ko: "즉각적으로, 망설임 없이 하다", ex: ["He'll help you at the drop of a hat.", "She's ready to travel at the drop of a hat.", "Don't just quit at the drop of a hat."], exKo: ["그는 부르면 언제든 달려와서 도와줄 거야.", "그녀는 언제든 즉시 여행 떠날 준비가 돼 있어.", "그냥 홧김에 바로 그만두지 마."] },
+            { en: "Do unto others as you would have them do unto you", ko: "대접받고 싶은 대로 남을 대접하라", ex: ["Remember, do unto others...", "It's the golden rule: do unto others.", "Always do unto others."], exKo: ["명심해, 대접받고 싶은 대로 남을 대하라는 걸.", "그게 황금률이야: 네가 당하기 싫은 건 남에게도 하지 마.", "항상 남을 먼저 배려해."] },
+            { en: "Don't count your chickens before they hatch", ko: "김칫국부터 마시지 마", ex: ["Don't count your chickens yet!", "Wait for the news, don't count your chickens.", "I told him, don't count your chickens."], exKo: ["아직 김칫국 마시지 마!", "결과 나올 때까지 기다려, 미리 기대하지 말고.", "내가 그에게 김칫국 마시지 말라고 했어."] },
+            { en: "Don't cry over spilled milk", ko: "이미 엎질러진 물이다 (후회해도 소용없다)", ex: ["Don't cry over spilled milk.", "It's no use crying over spilled milk.", "Stop crying over spilled milk and fix it."], exKo: ["이미 지나간 일로 후회하지 마.", "이미 엎질러진 물이야.", "후회는 그만하고 해결책을 찾아."] },
+            { en: "Don't give up your day job", ko: "본업에나 충실해 (농담조)", ex: ["Your cooking is... don't give up your day job.", "Nice try, but don't give up your day job.", "Seriously, don't give up your day job."], exKo: ["요리 실력이 참... 그냥 하던 일이나 해.", "노력은 가상한데, 본업 때려치우진 마.", "진심인데, 그냥 원래 직장 열심히 다녀."] },
+            { en: "Don't put all your eggs in one basket", ko: "한 바구니에 달걀을 다 담지 마 (위험 분산)", ex: ["Don't put all your eggs in one basket, diversify.", "Investors shouldn't put all eggs in one basket.", "Remember, don't put all eggs in one basket."], exKo: ["모든 걸 한 곳에 걸지 마, 분산 투자해.", "투자자는 위험을 분산해야 해.", "명심해, 한 우물만 파다가 망할 수 있어."] },
+            { en: "Every cloud has a silver lining", ko: "쥐구멍에도 볕 들 날 있다 (전화위복)", ex: ["Remember, every cloud has a silver lining.", "I believe every cloud has a silver lining.", "Looking for the silver lining."], exKo: ["하늘이 무너져도 솟아날 구멍은 있다는 걸 기억해.", "나쁜 상황에도 좋은 면은 있다고 믿어.", "희망의 빛을 찾아서."] },
+            { en: "Get a taste of your own medicine", ko: "자기가 한 대로 돌려받다 (인과응보)", ex: ["He finally got a taste of his own medicine.", "How does it feel to get a taste of your own medicine?", "She got a taste of her own medicine."], exKo: ["그는 결국 자기가 한 대로 되돌려 받았어.", "똑같이 당해보니까 기분이 어때?", "그녀는 인과응보를 겪었어."] },
+            { en: "Get out of hand", ko: "감당할 수 없게 되다, 과해지다", ex: ["The party got out of hand.", "Prices are getting out of hand.", "Before things get out of hand..."], exKo: ["파티가 걷잡을 수 없이 커졌어.", "물가가 감당 안 되게 오르고 있어.", "상황이 악화되기 전에...."] },
+            { en: "Get something out of your system", ko: "하고 싶은 걸 해서 후련해지다", ex: ["Go sing and get it out of your system.", "Need to get this out of my system.", "He got it out of his system."], exKo: ["가서 노래 부르고 속 시원하게 풀어.", "이거 다 쏟아내고 후련해져야겠어.", "그는 미련 없이 다 해버렸어."] },
+            { en: "Get your act together", ko: "정신 차려, 똑바로 해", ex: ["Get your act together or you're fired!", "You need to get your act together.", "He finally got his act together."], exKo: ["정신 똑바로 안 차리면 해고야!", "너 똑바로 행동해야 해.", "그는 마침내 정신을 차리고 제대로 살기 시작했어."] },
+            { en: "Give someone the cold shoulder", ko: "~를 쌀쌀맞게 대하다, 무시하다", ex: ["She gave me the cold shoulder.", "Why are you giving him the cold shoulder?", "I got the cold shoulder from them."], exKo: ["그녀는 나를 냉대했다.", "왜 그를 무시하는 거야?", "나는 그들에게 무시당했다."] },
+            { en: "Go on a wild goose chase", ko: "헛수고하다, 부질없는 일을 하다", ex: ["He sent me on a wild goose chase.", "It was a wild goose chase.", "Don't go on a wild goose chase."], exKo: ["그는 나를 헛고생시켰어.", "그건 완전히 헛수고였어.", "부질없는 짓 하지 마."] },
+            { en: "Good things come to those who wait", ko: "기다리는 자에게 복이 있나니", ex: ["Be patient, good things come to those who wait.", "As they say, good things come to those who wait.", "Indeed, good things come to those who wait."], exKo: ["인내심을 가져, 공든 탑이 무너지랴.", "말하길, 기다리면 복이 온대.", "정말이지, 기다린 보람이 있을 거야."] },
+            { en: "He has a chip on his shoulder", ko: "쉽게 시비를 걸다, 억울한 마음을 품고 있다", ex: ["He has a chip on his shoulder today.", "Why the chip on your shoulder?", "He's always had a chip on his shoulder."], exKo: ["그는 오늘 뭔가 단단히 꼬여 있어.", "왜 그렇게 시비조야?", "그는 항상 세상에 불만이 가득했어."] },
+                        { en: "He's as sitting duck", ko: "공격하기 쉬운 대상, 무방비 상태", ex: ["Without security, he's a sitting duck.", "Don't be a sitting duck out there.", "The company was a sitting duck for hackers."], exKo: ["보안이 없으면 그는 공격받기 딱 좋은 상태야.", "무방비 상태로 있지 마세요.", "그 회사는 해커들에게 손쉬운 타깃이었다."] },
+            { en: "He's barking up the wrong tree", ko: "번지수를 잘못 찾다", ex: ["If you're asking me, you're barking up the wrong tree.", "He's barking up the wrong tree with that argument.", "Stop barking up the wrong tree."], exKo: ["나한테 묻는 거라면 번지수 잘못 찾았어.", "그 논리로 따지면 헛수고하는 거야.", "엉뚱한 데서 찾지 마."] },
+            { en: "He's off his rocker", ko: "제정신이 아닌, 미친", ex: ["He's off his rocker if he thinks that's true.", "You're completely off your rocker!", "Is he off his rocker?"], exKo: ["그게 진짜라고 믿는다면 그는 제정신이 아니야.", "너 진짜 완전히 미쳤구나!", "그 사람 정신 나간 거 아냐?"] },
+            { en: "Hit the nail on the head", ko: "정곡을 찌르다, 정확히 맞히다", ex: ["You hit the nail on the head with that comment.", "He really hit the nail on the head.", "Exactly! You hit the nail on the head."], exKo: ["그 코멘트 정말 정곡을 찔렀어.", "그는 정말 핵심을 정확히 짚었어.", "정확해! 네 말이 딱 맞아."] },
+            { en: "It takes two to tango", ko: "손뼉도 마주쳐야 소리가 난다", ex: ["Don't blame just him, it takes two to tango.", "We both played a part; it takes two to tango.", "Remember, it takes two to tango."], exKo: ["그 사람만 탓하지 마, 양쪽 다 잘못이 있겠지.", "우리 둘 다 책임이 있어, 손뼉도 마주쳐야 소리가 나지.", "명심해, 혼자서는 벌어질 수 없는 일이야."] },
+            { en: "Jump on the bandwagon", ko: "시류에 편승하다, 유행을 따르다", ex: ["Everyone is jumping on the bandwagon.", "Don't just jump on the bandwagon.", "Companies jumped on the AI bandwagon."], exKo: ["모두가 그 유행을 따르고 있다.", "그냥 남들 한다고 따라 하지 마.", "기업들이 AI 열풍에 합류했다."] },
+            { en: "Keep something at bay", ko: "~을 저지하다, 가까이 오지 못하게 하다", ex: ["Eat healthy to keep illness at bay.", "The medicine kept the pain at bay.", "Keep the wolves at bay."], exKo: ["병에 걸리지 않도록 건강하게 먹어라.", "약 덕분에 통증을 가라앉혔다.", "위험을 가까이 오지 못하게 막아라."] },
+            { en: "Leave no stone unturned", ko: "모든 수단을 동원하다, 샅샅이 뒤지다", ex: ["I'll leave no stone unturned to find it.", "They left no stone unturned in the search.", "Leave no stone unturned, please."], exKo: ["그걸 찾기 위해 모든 수단을 다 동원할 거야.", "그들은 수색 과정에서 샅샅이 뒤졌다.", "가능한 모든 방법을 다 써보세요."] },
+            { en: "Let sleeping dogs lie", ko: "잠자는 사자의 코털을 건드리지 마 (긁어 부스럼 만들지 마)", ex: ["Don't bring it up again, let sleeping dogs lie.", "I'd rather let sleeping dogs lie.", "It's best to let sleeping dogs lie."], exKo: ["다시 꺼내지 마, 긁어 부스럼 만들지 말고.", "나는 그냥 모른 척하고 싶어.", "문제를 더 키우지 않는 게 최선이야."] },
+            { en: "Let the cat out of the bag", ko: "비밀을 누설하다", ex: ["Who let the cat out of the bag?", "Don't let the cat out of the bag yet.", "She accidentally let the cat out of the bag."], exKo: ["누가 비밀을 발설했어?", "아직 비밀을 말하지 마.", "그녀가 실수로 비밀을 누설했다."] },
+            { en: "Make a long story short", ko: "간단히 말하자면", ex: ["Long story short, we failed.", "To make a long story short, I quit.", "Long story short, I'm here."], exKo: ["요약하자면, 우린 실패했어.", "결론만 말하면, 나 그만뒀어.", "짧게 말해서, 나 여기 왔어."] },
+            { en: "Method to my madness", ko: "나만의 계획이 있다 (겉으론 미친 짓 같아도)", ex: ["Trust me, there's a method to my madness.", "It looks messy, but there's a method to my madness.", "Is there a method to your madness?"], exKo: ["날 믿어, 다 생각이 있어서 이러는 거야.", "엉망인 것 같아도 나름의 계획이 있어.", "너 다 계획이 있는 거지?"] },
+            { en: "Miss the boat", ko: "기회를 놓치다", ex: ["You missed the boat on that deal.", "Don't miss the boat!", "I'm afraid I missed the boat."], exKo: ["그 거래 기회를 놓치셨네요.", "기회를 놓치지 마세요!", "아무래도 기회를 놓친 것 같아."] },
+            { en: "Not a spark of decency", ko: "예의라곤 눈곱만큼도 없는", ex: ["He has not a spark of decency.", "Show at least a spark of decency.", "They lack even a spark of decency."], exKo: ["그는 예의라고는 찾아볼 수가 없어.", "최소한의 예의는 좀 지켜라.", "그들은 아주 기본적인 상식도 없다."] },
+            { en: "Not playing with a full deck", ko: "머리가 약간 모자란, 제정신이 아닌", ex: ["I think he's not playing with a full deck.", "She acts like she's not playing with a full deck.", "Is he really not playing with a full deck?"], exKo: ["내 생각에 그는 좀 모자란 것 같아.", "그녀는 나사가 하나 풀린 것처럼 행동해.", "그 사람 정말 정신이 좀 나간 거야?"] },
+            { en: "Off one's rocker", ko: "미친, 제정신이 아닌", ex: ["You're off your rocker if you go.", "He is truly off his rocker.", "Totally off his rocker."], exKo: ["거기 가면 너 진짜 제정신이 아닌 거야.", "그는 정말로 정신이 나갔어.", "완전히 미쳤네."] },
+            { en: "On the ball", ko: "상황 판단이 빠른, 유능한", ex: ["He's really on the ball.", "You need to be on the ball today.", "She is always on the ball."], exKo: ["그는 정말 빠릿빠릿해.", "너 오늘 정신 바짝 차려야 해.", "그녀는 항상 유능하다."] },
+            { en: "Once in a blue moon", ko: "아주 드물게", ex: ["I see him once in a blue moon.", "It happens once in a blue moon.", "Once in a blue moon, I go out."], exKo: ["나는 그를 아주 가끔 봐.", "그런 일은 가뭄에 콩 나듯 일어나.", "정말 어쩌다 한 번 외출해."] },
+            { en: "Picture paints a thousand words", ko: "백문이 불여일견", ex: ["Just show me, a picture paints a thousand words.", "A picture paints a thousand words, right?", "Indeed, a picture paints a thousand words."], exKo: ["그냥 보여줘, 백 마디 말보다 사진 한 장이 낫지.", "사진 한 장이 많은 걸 말해주잖아, 그치?", "정말이지, 보는 게 믿는 거야."] },
+            { en: "Piece of cake", ko: "식은 죽 먹기", ex: ["It's a piece of cake.", "The task was a piece of cake.", "Learning English is a piece of cake."], exKo: ["그건 껌이지.", "그 업무는 아주 쉬웠어.", "영어 배우는 건 아주 쉬워."] },
+            { en: "Pull someone's leg", ko: "농담하다, 놀리다", ex: ["Are you pulling my leg?", "I'm just pulling your leg.", "Stop pulling my leg!"], exKo: ["지금 장난해?", "그냥 농담이야.", "그만 좀 놀려!"] },
+            { en: "Pull yourself together", ko: "정신 차려, 마음을 가다듬어", ex: ["Pull yourself together and focus!", "I need to pull myself together.", "She finally pulled herself together."], exKo: ["정신 좀 차리고 집중해!", "나 마음을 좀 가다듬어야겠어.", "그녀는 마침내 기운을 차렸다."] },
+            { en: "Sit on the fence", ko: "중립을 지키다, 결정을 미루다", ex: ["Don't sit on the fence.", "He's still sitting on the fence.", "Stop sitting on the fence and decide."], exKo: ["애매하게 있지 마.", "그는 여전히 결정을 못 내리고 있어.", "그만 재고 결정 좀 해."] },
+            { en: "Speak of the devil", ko: "호랑이도 제 말 하면 온다", ex: ["Speak of the devil, here he comes.", "We were just talking about you, speak of the devil.", "Speak of the devil!"], exKo: ["호랑이도 제 말 하면 온다더니, 저기 오네.", "방금 네 얘기 중이었는데, 진짜 나타났네.", "말이 씨가 됐네!"] },
+            { en: "Steal someone's thunder", ko: "남의 공을 가로채다, 관심을 가로채다", ex: ["Don't steal my thunder!", "He stole her thunder at the meeting.", "She didn't mean to steal your thunder."], exKo: ["내 공을 가로채지 마!", "그는 회의에서 그녀가 받을 관심을 뺏어갔다.", "그녀는 네 관심을 뺏으려던 게 아니었어."] },
+            { en: "Take with a grain of salt", ko: "걸러서 듣다", ex: ["Take it with a grain of salt.", "I took his words with a grain of salt.", "Always take rumors with a grain of salt."], exKo: ["그냥 적당히 걸러서 들어.", "그의 말을 곧이곧대로 믿지 않았어.", "소문은 항상 걸러서 들어야 한다."] },
+            { en: "The ball is in your court", ko: "이제 네 차례다, 네가 결정할 일이다", ex: ["The ball is in your court now.", "It's your move, the ball is in your court.", "I've done my part, the ball is in your court."], exKo: ["이제 네가 결정할 차례야.", "네가 어떻게 할지에 달렸어.", "내 할 일은 다 했으니 이제 네 차례야."] },
+            { en: "The best of both worlds", ko: "일석이조", ex: ["It's the best of both worlds.", "He has the best of both worlds.", "Enjoy the best of both worlds."], exKo: ["양쪽 다 좋지 뭐.", "그는 두 가지 이점을 다 가졌어.", "일석이조를 즐기세요."] },
+            { en: "The last straw", ko: "한계점, 결정타", ex: ["This is the last straw!", "That's the last straw, I'm quitting.", "The last straw was the noise."], exKo: ["이건 정말 더는 못 참아!", "이제 한계야, 나 그만둘래.", "결정적인 계기는 그 소음이었어."] },
+            { en: "The whole nine yards", ko: "전부, 모든 것", ex: ["He gave me the whole nine yards.", "I want the whole nine yards.", "We did the whole nine yards."], exKo: ["그는 나에게 모든 것을 다 알려줬어.", "나는 전부 다 원해.", "우리는 할 수 있는 건 다 했어."] },
+            { en: "Through thick and thin", ko: "좋을 때나 나쁠 때나", ex: ["They stayed together through thick and thin.", "I'll support you through thick and thin.", "Friends through thick and thin."], exKo: ["그들은 모든 고난을 함께 겪으며 함께했다.", "어떤 상황에서도 널 지지할게.", "우리는 고락을 함께한 친구 사이다."] },
+            { en: "Time flies when you're having fun", ko: "즐거울 땐 시간이 빨리 간다", ex: ["Is it 10 PM? Time flies when you're having fun.", "Time flies when you're having fun, right?", "Indeed, time flies when you're having fun."], exKo: ["벌써 10시라고? 즐거우니 시간 금방 가네.", "재밌으면 시간 빨리 가잖아, 그치?", "정말이지, 즐거우면 시간이 화살 같아."] },
+            { en: "To get bent out of shape", ko: "화가 나다, 기분이 상하다", ex: ["Don't get bent out of shape about it.", "He's all bent out of shape.", "Why are you so bent out of shape?"], exKo: ["그 일로 너무 기분 상해하지 마.", "그는 지금 잔뜩 화가 나 있어.", "왜 그렇게 기분이 뒤틀려 있어?"] },
+            { en: "To make matters worse", ko: "설상가상으로", ex: ["To make matters worse, it started raining.", "He was late, and to make matters worse, he lost his keys.", "Then, to make matters worse..."], exKo: ["설상가상으로 비까지 내리기 시작했어.", "그는 늦은 데다 설상가상으로 열쇠까지 잃어버렸어.", "그런데 상황이 더 안 좋게도..."] },
+            { en: "Under the weather", ko: "몸이 좀 안 좋은", ex: ["I'm feeling a bit under the weather.", "He's under the weather today.", "Hope you're not under the weather."], exKo: ["몸 컨디션이 별로야.", "그는 오늘 몸이 좀 안 좋대.", "아프지 않았으면 좋겠어."] },
+            { en: "We'll cross that bridge when we come to it", ko: "그 문제는 그때 가서 생각하자", ex: ["Don't worry now, we'll cross that bridge later.", "We'll cross that bridge when we come to it.", "Let's cross that bridge then."], exKo: ["지금 걱정하지 마, 그건 나중에 생각하자.", "그 일은 닥쳤을 때 고민하자고.", "그때 가서 해결하자."] },
+            { en: "Wrap your head around something", ko: "~을 이해하다, 납득하다", ex: ["I can't wrap my head around this.", "Hard to wrap my head around the news.", "Can you wrap your head around it?"], exKo: ["난 이거 도저히 이해가 안 돼.", "그 소식은 참 받아들이기 어렵네.", "그거 이해할 수 있겠어?"] },
+            { en: "You can say that again", ko: "내 말이 그 말이야 (전적으로 동감)", ex: ["It's hot today. You can say that again!", "This is hard. You can say that again.", "You can say that again, brother."], exKo: ["오늘 진짜 덥다. 내 말이 그 말이야!", "이거 어렵네. 정말 그래.", "진짜 맞는 말이야, 친구."] },
+            { en: "Your guess is as good as mine", ko: "나도 모르긴 마찬가지야", ex: ["Where is he? Your guess is as good as mine.", "What's next? Your guess is as good as mine.", "I don't know, your guess is as good as mine."], exKo: ["그가 어디 있냐고? 나도 모르긴 마찬가지야.", "다음은 뭐야? 나도 모르겠어.", "몰라, 나도 너만큼이나 아는 게 없어."] },
+            { en: "A bird in the hand is worth two in the bush", ko: "확실한 하나가 불확실한 둘보다 낫다", ex: ["Keep the job, a bird in the hand is better.", "A bird in the hand is worth two in the bush.", "I'll take the bird in the hand."], exKo: ["그냥 그 직장 다녀, 확실한 게 좋은 거야.", "손안의 새 한 마리가 숲속의 두 마리보다 낫다.", "나는 확실한 이득을 택할래."] },
+            { en: "A blessing in disguise", ko: "불행 중 다행, 전화위복", ex: ["Losing that job was a blessing in disguise.", "It turned out to be a blessing in disguise.", "A real blessing in disguise."], exKo: ["직장을 잃은 게 오히려 잘된 일이었어.", "결국엔 전화위복이 되었지.", "정말 불행 중 다행이었어."] },
+            { en: "A penny for your thoughts", ko: "무슨 생각해?", ex: ["A penny for your thoughts?", "You look quiet, a penny for your thoughts?", "Tell me, a penny for your thoughts."], exKo: ["무슨 생각 하니?", "조용하네, 무슨 고민 있어?", "말해봐, 무슨 생각해?"] },
+            { en: "A penny saved is a penny earned", ko: "한 푼 아끼는 것이 한 푼 버는 것이다", ex: ["Save your money, a penny saved is a penny earned.", "My dad always said, a penny saved is a penny earned.", "Well, a penny saved is a penny earned."], exKo: ["돈 아껴 써, 한 푼 아낀 게 한 푼 번 거야.", "우리 아빠는 항상 티끌 모아 태산이라고 하셨지.", "뭐, 아끼는 게 버는 거지."] },
+            { en: "A perfect storm", ko: "최악의 상황, 첩첩산중", ex: ["It was a perfect storm of bad luck.", "The economy is facing a perfect storm.", "Welcome to the perfect storm."], exKo: ["불운이 겹치고 겹친 최악의 상황이었어.", "경제가 여러 악재가 겹친 위기에 처해 있어.", "최악의 시나리오에 오신 걸 환영합니다."] },
+            { en: "A picture paints a thousand words", ko: "백 마디 말보다 사진 한 장", ex: ["Just show me, a picture paints a thousand words.", "A picture paints a thousand words, right?", "Look at this, a picture paints a thousand words."], exKo: ["그냥 보여줘, 백 마디 말보다 사진 한 장이 낫잖아.", "사진 한 장이 많은 걸 말해주지, 그치?", "이거 봐, 보는 게 믿는 거야."] },
+            { en: "Actions speak louder than words", ko: "말보다 행동", ex: ["Don't just talk, actions speak louder than words.", "Actions speak louder than words, you know.", "Prove it, actions speak louder than words."], exKo: ["말만 하지 마, 행동이 더 중요한 거야.", "말보다 행동이 앞서야 한다는 거 알잖아.", "증명해 봐, 말은 누구나 할 수 있어."] },
+            { en: "Add insult to injury", ko: "설상가상, 엎친 데 덮친 격", ex: ["Then he fired me, to add insult to injury.", "Stop adding insult to injury.", "It only adds insult to injury."], exKo: ["그러고는 나를 해고했어, 엎친 데 덮친 격이지.", "불난 집에 부채질 좀 하지 마.", "그건 상황만 더 악화시킬 뿐이야."] },
+            { en: "Barking up the wrong tree", ko: "번지수 잘못 찾다", ex: ["You're barking up the wrong tree.", "He's barking up the wrong tree with that.", "If you think I did it, you're barking up the wrong tree."], exKo: ["너 번지수 잘못 짚었어.", "그는 그 일에 대해 헛물켜고 있어.", "내가 했다고 생각한다면 착각이야."] },
+            { en: "Beat around the bush", ko: "돌려 말하다", ex: ["Stop beating around the bush!", "Don't beat around the bush and say it.", "He kept beating around the bush."], exKo: ["말 돌리지 마!", "빙빙 돌리지 말고 그냥 말해.", "그는 계속 요점을 피했다."] },
+            { en: "Better late than never", ko: "늦더라도 아예 안 하는 것보다는 낫다", ex: ["You finally arrived! Better late than never.", "I finished it late, but better late than never.", "Better late than never, right?"], exKo: ["드디어 왔네! 안 오는 것보다 늦게라도 오는 게 낫지.", "늦게 끝냈지만, 안 하는 것보단 나아.", "늦는 게 안 하는 것보단 낫잖아, 그치?"] },
+            { en: "Bite off more than you can chew", ko: "무리하게 일을 벌이다", ex: ["Don't bite off more than you can chew.", "I bit off more than I could chew.", "He tends to bite off more than he can chew."], exKo: ["과욕 부리지 마.", "내가 내 분수에 넘치는 일을 했어.", "그는 항상 무리한 계획을 세운다."] },
+            { en: "Bite the bullet", ko: "참고 견디다, 매를 맞다", ex: ["I had to bite the bullet and do it.", "Bite the bullet and apologize.", "It's time to bite the bullet."], exKo: ["눈 딱 감고 참고 해야 했어.", "꾹 참고 가서 사과해.", "이제는 직면해야 할 시간이야."] },
+            { en: "Break the ice", ko: "어색함을 깨다", ex: ["He told a joke to break the ice.", "How should we break the ice?", "It helped to break the ice."], exKo: ["그는 분위기를 깨려고 농담을 던졌어.", "어떻게 분위기를 좀 띄워볼까?", "그게 서먹함을 없애는 데 도움이 됐어."] },
+            { en: "Burn bridges", ko: "인간관계를 끊다", ex: ["Don't burn your bridges when you leave.", "He burned his bridges with that company.", "I didn't want to burn any bridges."], exKo: ["회사를 떠날 때 관계를 망치지 마세요.", "그는 그 회사와 인연을 완전히 끊어버렸다.", "나는 누구와도 척지고 싶지 않았어."] },
+            { en: "Burn the midnight oil", ko: "밤새 일하다", ex: ["I had to burn the midnight oil to finish.", "She's been burning the midnight oil lately.", "Stop burning the midnight oil every day."], exKo: ["끝내기 위해 밤늦게까지 야근해야 했어.", "그녀는 최근 밤낮없이 일하고 있어.", "매일 밤샘 작업하는 것 좀 그만해."] },
+            { en: "By the skin of your teeth", ko: "간발의 차이로, 간신히", ex: ["I passed the test by the skin of my teeth.", "He escaped by the skin of his teeth.", "We won by the skin of our teeth."], exKo: ["나 진짜 간발의 차로 시험 합격했어.", "그는 가까스로 탈출했어.", "우리는 정말 간신히 이겼어."] },
+            { en: "Compare apples to oranges", ko: "잘못된 비교를 하다", ex: ["You can't compare apples to oranges.", "That's like comparing apples to oranges.", "It's comparing apples to oranges, really."], exKo: ["그 두 개는 비교 대상이 아니야.", "그건 사과랑 오렌지를 비교하는 격이지.", "진짜 말도 안 되는 비교야."] },
+            { en: "Costs an arm and a leg", ko: "엄청나게 비싸다", ex: ["That house costs an arm and a leg.", "Repairs cost an arm and a leg.", "My new car cost an arm and a leg."], exKo: ["저 집은 정말 등골 휘게 비싸.", "수리비가 장난 아니게 많이 들었어.", "내 새 차는 진짜 거액을 주고 샀어."] },
+            { en: "Do something at the drop of a hat", ko: "망설임 없이 즉각 하다", ex: ["He'll help you at the drop of a hat.", "She's ready to travel at the drop of a hat.", "Don't just quit at the drop of a hat."], exKo: ["그는 부르면 언제든 달려와서 도와줄 거야.", "그녀는 언제든 즉시 여행 떠날 준비가 돼 있어.", "그냥 홧김에 바로 그만두지 마."] },
+            { en: "Don't count your chickens", ko: "김칫국부터 마시지 마", ex: ["Don't count your chickens before they hatch.", "Wait for the news, don't count your chickens.", "I told him, don't count your chickens."], exKo: ["부화하기도 전에 병아리 숫자 세지 마.", "결과 나올 때까지 기다려, 미리 기대하지 말고.", "내가 그에게 김칫국 마시지 말라고 했어."] }
+
+        
+        
     ];
 
     let currentIndex = 0;
-    // 즐겨찾기 및 아는 단어 데이터 LocalStorage 연동
-    let favorites = JSON.parse(localStorage.getItem('voca_favs')) || [];
-    let knownWords = JSON.parse(localStorage.getItem('voca_known')) || [];
+    let favorites = JSON.parse(localStorage.getItem('v_favs')) || [];
+    let knownWords = JSON.parse(localStorage.getItem('v_known')) || [];
+
+    // [음성 엔진 최적화] - 미국 원어민 표준 발음 강제 지정
+    function speak() {
+        window.speechSynthesis.cancel(); 
+        const text = vocabulary[currentIndex].en;
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // 브라우저에서 사용 가능한 목소리 목록 가져오기
+        const voices = window.speechSynthesis.getVoices();
+        
+        // 최상급 원어민 목소리 순위: 
+        // 1. Google US English (가장 자연스러움)
+        // 2. Microsoft Aria (Natural) - Edge 전용 고품질
+        // 3. Samantha (Apple)
+        // 4. en-US lang 목소리
+        const preferredVoice = 
+            voices.find(v => v.name === 'Google US English' && v.lang === 'en-US') ||
+            voices.find(v => v.name.includes('Aria') && v.lang.includes('en-US')) ||
+            voices.find(v => v.name === 'Samantha' && v.lang === 'en-US') ||
+            voices.find(v => v.lang === 'en-US' && v.name.includes('Female')) ||
+            voices.find(v => v.lang === 'en-US');
+
+        if (preferredVoice) {
+            utterance.voice = preferredVoice;
+        }
+
+        utterance.lang = 'en-US';
+        utterance.rate = 0.88; // 약간 천천히 읽어주어 원어민의 명확한 발음 전달
+        utterance.pitch = 1.0; 
+        
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // 목소리 목록 로드를 위한 초기화 (Chrome 등 일부 브라우저 필수)
+    window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+    };
 
     function updateStats() {
         const pool = vocabulary.filter(w => !knownWords.includes(w.en));
-        document.getElementById('progress-text').innerText = `남은 미암기 단어: ${pool.length}개`;
+        document.getElementById('progress-text').innerText = `남은 단어: ${pool.length}개`;
     }
 
     function nextWord() {
         const pool = vocabulary.filter(w => !knownWords.includes(w.en));
-        
         if (pool.length === 0) {
-            alert("🎉 모든 단어를 마스터하셨습니다! 학습 기록을 초기화합니다.");
+            alert("🎉 모든 단어를 마스터하셨습니다!");
             resetData();
             return;
         }
-
         const nextItem = pool[Math.floor(Math.random() * pool.length)];
         currentIndex = vocabulary.findIndex(w => w.en === nextItem.en);
         
-        // 화면 초기화
         document.getElementById('word').innerText = nextItem.en;
         document.getElementById('content-area').style.display = 'none';
         document.getElementById('word-img').style.display = 'none';
         document.getElementById('placeholder-text').style.display = 'block';
-        document.getElementById('placeholder-text').innerHTML = "연상 이미지가 필요하면<br>아래 [이미지 보기] 버튼을 누르세요";
-        
-        // 즐겨찾기 상태 반영
         document.getElementById('fav-btn').classList.toggle('active', favorites.includes(nextItem.en));
-        
         updateStats();
     }
 
@@ -148,49 +443,23 @@
         const item = vocabulary[currentIndex];
         const img = document.getElementById('word-img');
         const placeholder = document.getElementById('placeholder-text');
+        placeholder.innerText = "이미지를 생성 중...";
         
-        placeholder.innerText = "이미지를 불러오는 중...";
-        
-        // 검색어 최적화: 마지막 단어를 키워드로 사용
         const keyword = item.en.split(' ').pop();
-        const randomSeed = Math.floor(Math.random() * 1000);
-        
-        img.src = `https://loremflickr.com/400/300/${keyword},concept/all?lock=${randomSeed}`;
+        img.src = `https://loremflickr.com/400/300/${keyword},usa/all?lock=${Math.random()}`;
         
         img.onload = () => {
             img.style.display = 'block';
             placeholder.style.display = 'none';
         };
-        img.onerror = () => {
-            placeholder.innerText = "이미지를 찾을 수 없습니다. (탭하여 다시 시도)";
-        };
     }
 
-    function speak() {
-        window.speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(vocabulary[currentIndex].en);
-        
-        const voices = window.speechSynthesis.getVoices();
-        // 가장 자연스러운 미국 원어민 음성 선택
-        const selectedVoice = voices.find(v => v.name.includes('Google US English')) || 
-                            voices.find(v => v.lang === 'en-US');
-        
-        if (selectedVoice) msg.voice = selectedVoice;
-        msg.rate = 0.85;
-        window.speechSynthesis.speak(msg);
-    }
-
-    // [알아요] 버튼: 이 단어를 knownWords에 추가하고 목록에서 제외
     function markAsKnown() {
-        const word = vocabulary[currentIndex].en;
-        if (!knownWords.includes(word)) {
-            knownWords.push(word);
-            localStorage.setItem('voca_known', JSON.stringify(knownWords));
-        }
+        knownWords.push(vocabulary[currentIndex].en);
+        localStorage.setItem('v_known', JSON.stringify(knownWords));
         nextWord();
     }
 
-    // [즐겨찾기] 버튼: 별도 체크용
     function toggleFavorite() {
         const word = vocabulary[currentIndex].en;
         if (favorites.includes(word)) {
@@ -198,23 +467,17 @@
         } else {
             favorites.push(word);
         }
-        localStorage.setItem('voca_favs', JSON.stringify(favorites));
+        localStorage.setItem('v_favs', JSON.stringify(favorites));
         document.getElementById('fav-btn').classList.toggle('active');
     }
 
     function resetData() {
-        if(confirm("모든 즐겨찾기와 학습 기록을 초기화할까요?")) {
+        if(confirm("모든 기록을 초기화할까요?")) {
             localStorage.clear();
             location.reload();
         }
     }
 
-    // 음성 엔진 로딩 대기
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-    }
-
-    // 첫 실행
     nextWord();
 </script>
 
