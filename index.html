@@ -1,0 +1,55 @@
+
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>영단어 암기장</title>
+    <style>
+        body { margin: 0; font-family: -apple-system; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; height: 100vh; justify-content: center; }
+        .card { width: 85%; height: 300px; background: white; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; transition: 0.3s; }
+        .card:active { transform: scale(0.98); }
+        #word { font-size: 48px; font-weight: 800; color: #1d1d1f; margin: 0; }
+        #meaning { font-size: 28px; color: #007AFF; margin-top: 20px; font-weight: 500; min-height: 35px; }
+        .btn { margin-top: 50px; width: 85%; padding: 18px; border: none; border-radius: 18px; background: #007AFF; color: white; font-size: 20px; font-weight: 600; cursor: pointer; }
+        .hint { margin-top: 15px; color: #86868b; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="card" onclick="toggleMeaning()">
+        <div id="word">Apple</div>
+        <div id="meaning" style="visibility: hidden;">사과</div>
+    </div>
+    <div class="hint">카드를 터치하면 뜻이 보입니다</div>
+    <button class="btn" onclick="nextWord()">다음 단어 (Next)</button>
+
+    <script>
+        // 여기에 공부하고 싶은 단어를 추가하세요
+        const vocabulary = [
+            { en: "Ambition", ko: "야망, 포부" },
+            { en: "Perspective", ko: "관점, 시각" },
+            { en: "Resilient", ko: "회복력 있는" },
+            { en: "Sustainable", ko: "지속 가능한" },
+            { en: "Collaborate", ko: "협력하다" }
+        ];
+
+        let currentIndex = 0;
+
+        function toggleMeaning() {
+            const m = document.getElementById('meaning');
+            m.style.visibility = (m.style.visibility === 'hidden') ? 'visible' : 'hidden';
+        }
+
+        function nextWord() {
+            currentIndex = Math.floor(Math.random() * vocabulary.length);
+            document.getElementById('word').innerText = vocabulary[currentIndex].en;
+            document.getElementById('meaning').innerText = vocabulary[currentIndex].ko;
+            document.getElementById('meaning').style.visibility = 'hidden';
+        }
+    </script>
+</body>
+</html>
