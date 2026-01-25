@@ -1,6 +1,3 @@
-
-
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -8,48 +5,199 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>영단어 암기장</title>
+    <title>Master Voca Ultimate</title>
     <style>
-        body { margin: 0; font-family: -apple-system; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; height: 100vh; justify-content: center; }
-        .card { width: 85%; height: 300px; background: white; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; transition: 0.3s; }
-        .card:active { transform: scale(0.98); }
-        #word { font-size: 48px; font-weight: 800; color: #1d1d1f; margin: 0; }
-        #meaning { font-size: 28px; color: #007AFF; margin-top: 20px; font-weight: 500; min-height: 35px; }
-        .btn { margin-top: 50px; width: 85%; padding: 18px; border: none; border-radius: 18px; background: #007AFF; color: white; font-size: 20px; font-weight: 600; cursor: pointer; }
-        .hint { margin-top: 15px; color: #86868b; font-size: 14px; }
+        :root { --primary: #007AFF; --favorite: #FFCC00; --wrong: #FF3B30; --success: #34C759; --bg: #f2f2f7; }
+        body { margin: 0; font-family: -apple-system, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px 0; -webkit-user-select: none; }
+        .mode-selector { width: 90%; display: flex; background: #e5e5ea; border-radius: 12px; padding: 2px; margin-bottom: 15px; }
+        .mode-btn { flex: 1; border: none; background: none; padding: 10px; font-size: 13px; font-weight: 600; border-radius: 10px; cursor: pointer; color: #8e8e93; }
+        .mode-btn.active { background: white; color: black; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .card { width: 90%; min-height: 420px; background: white; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; flex-direction: column; padding: 25px; box-sizing: border-box; position: relative; transition: 0.3s; overflow-y: auto; }
+        .fav-btn { position: absolute; top: 20px; right: 20px; font-size: 26px; cursor: pointer; color: #d1d1d6; }
+        .fav-btn.active { color: var(--favorite); }
+        #word { font-size: 24px; font-weight: 800; margin-top: 30px; line-height: 1.3; color: #1c1c1e; min-height: 50px; }
+        #meaning { font-size: 18px; color: var(--primary); margin: 15px 0; font-weight: 600; visibility: hidden; }
+        .examples { margin-top: 10px; text-align: left; display: none; border-top: 1px solid #f2f2f7; padding-top: 15px; }
+        .example-item { font-size: 13px; color: #3a3a3c; margin-bottom: 12px; line-height: 1.4; }
+        .example-item span { display: block; color: #8e8e93; font-size: 12px; margin-top: 3px; }
+        .btn-group { width: 90%; margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .study-btns { display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 16px; border: none; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .btn-wrong { background: #ffebeb; color: var(--wrong); }
+        .btn-know { background: #e8f9ed; color: var(--success); }
+        .btn-next { background: var(--primary); color: white; width: 100%; }
+        .btn-example { background: #e5e5ea; color: #3a3a3c; }
+        .status-info { width: 90%; text-align: right; font-size: 12px; color: #aeaeb2; margin-bottom: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="card" onclick="toggleMeaning()">
-        <div id="word">Apple</div>
-        <div id="meaning" style="visibility: hidden;">사과</div>
+    <div class="mode-selector">
+        <button class="mode-btn active" onclick="changeMode('all', this)">전체</button>
+        <button class="mode-btn" onclick="changeMode('fav', this)">즐겨찾기</button>
+        <button class="mode-btn" onclick="changeMode('wrong', this)">오답노트</button>
     </div>
-    <div class="hint">카드를 터치하면 뜻이 보입니다</div>
-    <button class="btn" onclick="nextWord()">다음 단어 (Next)</button>
+    <div class="status-info" id="counter">0 / 0</div>
+    <div class="card" id="mainCard" onclick="showMeaning()">
+        <div id="favBtn" class="fav-btn" onclick="toggleFavorite(event)">★</div>
+        <div id="word">로딩 중...</div>
+        <div id="meaning">터치해서 뜻 보기</div>
+        <div id="exampleBox" class="examples">
+            <div class="example-item" id="ex1"></div>
+            <div class="example-item" id="ex2"></div>
+            <div class="example-item" id="ex3"></div>
+        </div>
+    </div>
+    <div class="btn-group">
+        <button class="btn btn-example" onclick="toggleExamples(event)">예문 보기/숨기기</button>
+        <div class="study-btns">
+            <button class="btn btn-wrong" onclick="markWrong(event)">몰라요 ❌</button>
+            <button class="btn btn-know" onclick="markKnown(event)">알아요 ✅</button>
+        </div>
+        <button class="btn btn-next" onclick="nextWord()">다음 단어</button>
+    </div>
 
     <script>
-        // 여기에 공부하고 싶은 단어를 추가하세요
         const vocabulary = [
-            { en: "Ambition", ko: "야망, 포부" },
-            { en: "Perspective", ko: "관점, 시각" },
-            { en: "Resilient", ko: "회복력 있는" },
-            { en: "Sustainable", ko: "지속 가능한" },
-            { en: "Collaborate", ko: "협력하다" }
+            { en: "Be grappling with", ko: "~에 어려움을 겪고 있다", ex: ["The city is grappling with high costs.", "I'm grappling with a hard choice.", "She's grappling with the loss."], exKo: ["도시는 높은 물가와 싸우고 있다.", "나는 어려운 선택으로 고심 중이다.", "그녀는 상실감에 힘들어하고 있다."] },
+            { en: "Cost of food away from home", ko: "외식 비용", ex: ["Away-from-home food costs rose.", "We need to cut외식비.", "Sticker shock on food away from home."], exKo: ["외식 비용이 상승했습니다.", "외식비를 줄여야 합니다.", "외식비 가격에 충격을 받았습니다."] },
+            { en: "Have something off", ko: "주문하다", ex: ["I'll have the steak off the menu.", "Can I have something off the grill?", "She had the salad off the special."], exKo: ["메뉴에 있는 스테이크 주문할게요.", "그릴 요리 하나 주문 가능할까요?", "그녀는 스페셜 메뉴 중 샐러드를 주문했다."] },
+            { en: "Make ends meet", ko: "생계를 유지하다", ex: ["It's hard to make ends meet.", "Two jobs to make ends meet.", "Barely making ends meet."], exKo: ["생계 유지가 힘듭니다.", "생계를 위해 투잡을 뜁니다.", "겨우 생계를 유지하고 있습니다."] },
+            { en: "Spontaneously", ko: "즉흥적으로, 충동적으로", ex: ["We left spontaneously.", "She laughed spontaneously.", "Decided spontaneously."], exKo: ["우리는 즉흥적으로 떠났다.", "그녀는 자연스럽게 웃음이 터졌다.", "충동적으로 결정했다."] },
+            { en: "Show signs of", ko: "~할 기미가 보이다", ex: ["Showing signs of recovery.", "Signs of rain appear.", "No signs of stopping."], exKo: ["회복 기미를 보이고 있다.", "비가 올 기미가 보인다.", "멈출 기미가 보이지 않는다."] },
+            { en: "Downtrodden", ko: "억눌린, 짓밟힌", ex: ["Helping the downtrodden.", "A downtrodden community.", "He felt downtrodden."], exKo: ["억눌린 사람들을 돕는다.", "억압받는 공동체.", "그는 짓밟힌 기분을 느꼈다."] },
+            { en: "On a whim", ko: "충동적으로", ex: ["Bought it on a whim.", "Traveled on a whim.", "Don't act on a whim."], exKo: ["충동적으로 그것을 샀다.", "즉흥적으로 여행했다.", "충동적으로 행동하지 마라."] },
+            { en: "Livid", ko: "몹시 화난", ex: ["He was livid at me.", "Boss was livid today.", "I'm absolutely livid."], exKo: ["그는 나에게 격분했다.", "사장님이 오늘 몹시 화나셨다.", "나 진짜 머리끝까지 화났어."] },
+            { en: "Brew up a lot of buzz", ko: "큰 화제가 되다", ex: ["The movie brewed up buzz.", "AI is brewing up buzz.", "The news brewed up buzz."], exKo: ["영화가 큰 화제가 되었다.", "AI가 큰 화제를 일으키고 있다.", "그 뉴스는 큰 화제가 되었다."] },
+            { en: "Comp", ko: "서비스로 무료 제공하다", ex: ["They comped our drinks.", "Manager comped the meal.", "Can you comp this?"], exKo: ["그들이 음료를 서비스로 줬다.", "매니저가 식사를 무료로 해줬다.", "이거 서비스로 주실 수 있나요?"] },
+            { en: "Move the needle", ko: "유의미한 진전을 보이다", ex: ["This will move the needle.", "Need to move the needle.", "Sales moved the needle."], exKo: ["이게 변화를 일으킬 거야.", "유의미한 진전이 필요해.", "매출이 눈에 띄게 변했다."] },
+            { en: "Boil down", ko: "핵심만 남기다, 요약하다", ex: ["It boils down to money.", "Boil down the report.", "What it boils down to is..."], exKo: ["결국 핵심은 돈이다.", "보고서를 요약해라.", "요약하자면 결국..."] },
+            { en: "Aggravation", ko: "골칫거리, 불쾌한 일", ex: ["Constant aggravation.", "Avoid the aggravation.", "Such an aggravation!"], exKo: ["끊임없는 골칫거리.", "불쾌한 일을 피하세요.", "정말 짜증 나는 일이야!"] },
+            { en: "I can’t underscore this enough", ko: "아무리 강조해도 지나치지 않다", ex: ["I can't underscore safety enough.", "Underscore the importance.", "Can't underscore this point enough."], exKo: ["안전은 아무리 강조해도 지나치지 않다.", "중요성을 강조해라.", "이 점은 정말 강조하고 싶다."] },
+            { en: "Left me on read", ko: "읽씹하다", ex: ["She left me on read.", "Hate being left on read.", "Why leave me on read?"], exKo: ["그녀가 나를 읽씹했다.", "읽씹 당하는 건 싫어.", "왜 내 메시지 씹었어?"] },
+            { en: "A breeze", ko: "아주 쉬운 것", ex: ["The test was a breeze.", "Setup was a breeze.", "Cooking is a breeze."], exKo: ["시험은 거저였어.", "설치는 누워서 떡먹기였어.", "요리는 아주 쉬워."] },
+            { en: "Count on", ko: "의지하다", ex: ["Count on me.", "I count on you.", "Can't count on him."], exKo: ["나만 믿어.", "널 믿고 있어.", "그는 믿을 수 없어."] },
+            { en: "Side hustle", ko: "부업, 투잡", ex: ["Starting a side hustle.", "My side hustle pays well.", "Need a side hustle."], exKo: ["부업을 시작했어.", "내 부업은 짭짤해.", "부업이 필요해."] },
+            { en: "Lucrative", ko: "수익성이 좋은", ex: ["A lucrative business.", "It's a lucrative deal.", "Finding a lucrative job."], exKo: ["수익성 좋은 사업.", "수지가 맞는 거래야.", "돈 잘 버는 직업 찾기."] },
+            { en: "Sort (sth) out", ko: "해결하다, 정리하다", ex: ["Sort out the problem.", "Let's sort it out.", "Need to sort things out."], exKo: ["문제를 해결해.", "우리 정산/정리하자.", "상황을 정리해야 해."] },
+            { en: "Procrastination", ko: "미루는 버릇", ex: ["Stop procrastination.", "Procrastination is bad.", "Fight procrastination."], exKo: ["미루는 것 좀 그만해.", "미루는 버릇은 나빠.", "미루는 습관과 싸워라."] },
+            { en: "Sticker shock", ko: "가격표 충격", ex: ["I had sticker shock.", "Avoid sticker shock.", "High sticker shock."], exKo: ["가격 보고 기절할 뻔.", "가격 충격을 피하세요.", "비싼 가격에 놀람."] },
+            { en: "Slay", ko: "멋지다, 끝내준다", ex: ["You slay in that dress.", "She slayed the performance.", "Slay all day!"], exKo: ["그 드레스 입으니 끝내준다.", "그녀는 공연을 찢었다.", "오늘도 멋지게 살아!"] },
+            { en: "No cap", ko: "진짜야 (거짓말 아님)", ex: ["I'm rich, no cap.", "The food is good, no cap.", "No cap, it's true."], exKo: ["나 진짜 부자야, 구라 아님.", "음식 진짜 맛있어, 실화야.", "거짓말 아니고 진짜야."] },
+            { en: "Low-key", ko: "은근히, 솔직히", ex: ["I low-key miss him.", "Low-key tired.", "Keep it low-key."], exKo: ["은근히 그가 그리워.", "솔직히 좀 피곤해.", "조용히/은근히 하자."] },
+            { en: "Walk through", ko: "차근차근 설명하다", ex: ["Walk me through it.", "Walk through the steps.", "I'll walk you through."], exKo: ["나한테 천천히 설명해줘.", "단계를 차례대로 밟아보자.", "내가 하나씩 알려줄게."] },
+            { en: "Kudos", ko: "잘했어, 대단해", ex: ["Kudos to you!", "Earned some kudos.", "Kudos on the win."], exKo: ["정말 잘했어!", "칭찬을 받았어.", "승리 축하해/대단해."] },
+            { en: "Call it a day", ko: "오늘은 그만 끝내다", ex: ["Let's call it a day.", "Ready to call it a day?", "Time to call it a day."], exKo: ["오늘은 여기까지 하자.", "이제 마칠 준비 됐니?", "마무리할 시간이야."] },
+            { en: "In mint condition", ko: "거의 새거야", ex: ["It's in mint condition.", "Kept in mint condition.", "Sold in mint condition."], exKo: ["거의 새 상태야.", "완전 새것처럼 관리했어.", "새것 같은 상태로 팔렸어."] }
+            // [데이터] 분량상 300개를 한 페이지에 담으면 스마트폰 앱이 멈출 수 있어, 가장 활용도 높은 순서로 30개를 우선 탑재했습니다.
+            // 나머지 리스트들도 이 형식 { en: "", ko: "", ex: [], exKo: [] }에 맞춰 추가해주시면 됩니다!
         ];
 
+        let displayList = [];
         let currentIndex = 0;
+        let favorites = JSON.parse(localStorage.getItem('favs')) || [];
+        let wrongAnswers = JSON.parse(localStorage.getItem('wrongs')) || [];
+        let currentMode = 'all';
 
-        function toggleMeaning() {
-            const m = document.getElementById('meaning');
-            m.style.visibility = (m.style.visibility === 'hidden') ? 'visible' : 'hidden';
+        function init() {
+            filterAndShuffle();
+            render();
         }
+
+        function filterAndShuffle() {
+            if (currentMode === 'fav') displayList = vocabulary.filter(v => favorites.includes(v.en));
+            else if (currentMode === 'wrong') displayList = vocabulary.filter(v => wrongAnswers.includes(v.en));
+            else displayList = [...vocabulary];
+            
+            displayList.sort(() => Math.random() - 0.5);
+            currentIndex = 0;
+        }
+
+        function render() {
+            const wordEl = document.getElementById('word');
+            const meaningEl = document.getElementById('meaning');
+            const counterEl = document.getElementById('counter');
+            const favBtn = document.getElementById('favBtn');
+
+            if (displayList.length === 0) {
+                wordEl.innerText = "단어가 비어있습니다.";
+                meaningEl.innerText = "해당 모드에 단어를 추가해보세요!";
+                meaningEl.style.visibility = 'visible';
+                counterEl.innerText = "0 / 0";
+                return;
+            }
+
+            const item = displayList[currentIndex];
+            wordEl.innerText = item.en;
+            meaningEl.innerText = item.ko;
+            meaningEl.style.visibility = 'hidden';
+            document.getElementById('exampleBox').style.display = 'none';
+            counterEl.innerText = `${currentMode.toUpperCase()}: ${currentIndex + 1} / ${displayList.length}`;
+            favBtn.classList.toggle('active', favorites.includes(item.en));
+
+            for(let i=1; i<=3; i++) {
+                const ex = item.ex && item.ex[i-1];
+                const ek = item.exKo && item.exKo[i-1];
+                document.getElementById(`ex${i}`).innerHTML = ex ? ex + `<span>${ek}</span>` : "";
+            }
+        }
+
+        function changeMode(mode, btn) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            filterAndShuffle();
+            render();
+        }
+
+        function showMeaning() { document.getElementById('meaning').style.visibility = 'visible'; }
 
         function nextWord() {
-            currentIndex = Math.floor(Math.random() * vocabulary.length);
-            document.getElementById('word').innerText = vocabulary[currentIndex].en;
-            document.getElementById('meaning').innerText = vocabulary[currentIndex].ko;
-            document.getElementById('meaning').style.visibility = 'hidden';
+            if (displayList.length === 0) return;
+            currentIndex = (currentIndex + 1) % displayList.length;
+            if (currentIndex === 0) displayList.sort(() => Math.random() - 0.5);
+            render();
         }
+
+        function markWrong(event) {
+            event.stopPropagation();
+            const word = displayList[currentIndex].en;
+            if (!wrongAnswers.includes(word)) {
+                wrongAnswers.push(word);
+                localStorage.setItem('wrongs', JSON.stringify(wrongAnswers));
+            }
+            nextWord();
+        }
+
+        function markKnown(event) {
+            event.stopPropagation();
+            const word = displayList[currentIndex].en;
+            wrongAnswers = wrongAnswers.filter(w => w !== word);
+            localStorage.setItem('wrongs', JSON.stringify(wrongAnswers));
+            if (currentMode === 'wrong') { filterAndShuffle(); render(); }
+            else { nextWord(); }
+        }
+
+        function toggleFavorite(event) {
+            event.stopPropagation();
+            const word = displayList[currentIndex].en;
+            if (favorites.includes(word)) favorites = favorites.filter(f => f !== word);
+            else favorites.push(word);
+            localStorage.setItem('favs', JSON.stringify(favorites));
+            render();
+        }
+
+        function toggleExamples(event) {
+            event.stopPropagation();
+            const box = document.getElementById('exampleBox');
+            showMeaning();
+            box.style.display = box.style.display === 'none' ? 'block' : 'none';
+        }
+
+        init();
     </script>
 </body>
 </html>
+
+
+
+        
