@@ -2,63 +2,55 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Master Voca Ultimate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Voca App</title>
     <style>
-        :root { --primary: #007AFF; --favorite: #FFCC00; --wrong: #FF3B30; --success: #34C759; --bg: #f2f2f7; }
-        body { margin: 0; font-family: -apple-system, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px 0; -webkit-user-select: none; }
-        .mode-selector { width: 90%; display: flex; background: #e5e5ea; border-radius: 12px; padding: 2px; margin-bottom: 15px; }
-        .mode-btn { flex: 1; border: none; background: none; padding: 10px; font-size: 13px; font-weight: 600; border-radius: 10px; cursor: pointer; color: #8e8e93; }
-        .mode-btn.active { background: white; color: black; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .card { width: 90%; min-height: 420px; background: white; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; flex-direction: column; padding: 25px; box-sizing: border-box; position: relative; transition: 0.3s; overflow-y: auto; }
-        .fav-btn { position: absolute; top: 20px; right: 20px; font-size: 26px; cursor: pointer; color: #d1d1d6; }
-        .fav-btn.active { color: var(--favorite); }
-        #word { font-size: 24px; font-weight: 800; margin-top: 30px; line-height: 1.3; color: #1c1c1e; min-height: 50px; }
-        #meaning { font-size: 18px; color: var(--primary); margin: 15px 0; font-weight: 600; visibility: hidden; }
-        .examples { margin-top: 10px; text-align: left; display: none; border-top: 1px solid #f2f2f7; padding-top: 15px; }
-        .example-item { font-size: 13px; color: #3a3a3c; margin-bottom: 12px; line-height: 1.4; }
-        .example-item span { display: block; color: #8e8e93; font-size: 12px; margin-top: 3px; }
-        .btn-group { width: 90%; margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .study-btns { display: flex; gap: 10px; }
-        .btn { flex: 1; padding: 16px; border: none; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .btn-wrong { background: #ffebeb; color: var(--wrong); }
-        .btn-know { background: #e8f9ed; color: var(--success); }
-        .btn-next { background: var(--primary); color: white; width: 100%; }
-        .btn-example { background: #e5e5ea; color: #3a3a3c; }
-        .status-info { width: 90%; text-align: right; font-size: 12px; color: #aeaeb2; margin-bottom: 5px; font-weight: bold; }
+        :root { --primary: #6366f1; --bg: #f8fafc; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; width: 90%; max-width: 400px; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; }
+        
+        /* 이미지 컨테이너 추가 */
+        #img-box { 
+            width: 100%; height: 200px; background: #e2e8f0; border-radius: 15px; 
+            margin-bottom: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        #word-img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s; opacity: 0; }
+        .loader { position: absolute; font-size: 0.8rem; color: #94a3b8; }
+
+        #word { font-size: 1.8rem; font-weight: 800; color: #1e293b; margin: 10px 0; }
+        #mean { font-size: 1.2rem; color: var(--primary); margin: 10px 0; display: none; }
+        .ex-box { background: #f1f5f9; padding: 15px; border-radius: 12px; text-align: left; margin-top: 15px; display: none; font-size: 0.9rem; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn-show { background: var(--primary); color: white; }
+        .btn-next { background: #1e293b; color: white; }
+        button:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
-    <div class="mode-selector">
-        <button class="mode-btn active" onclick="changeMode('all', this)">전체</button>
-        <button class="mode-btn" onclick="changeMode('fav', this)">즐겨찾기</button>
-        <button class="mode-btn" onclick="changeMode('wrong', this)">오답노트</button>
-    </div>
-    <div class="status-info" id="counter">0 / 0</div>
-    <div class="card" id="mainCard" onclick="showMeaning()">
-        <div id="favBtn" class="fav-btn" onclick="toggleFavorite(event)">★</div>
-        <div id="word">로딩 중...</div>
-        <div id="meaning">터치해서 뜻 보기</div>
-        <div id="exampleBox" class="examples">
-            <div class="example-item" id="ex1"></div>
-            <div class="example-item" id="ex2"></div>
-            <div class="example-item" id="ex3"></div>
-        </div>
-    </div>
-    <div class="btn-group">
-        <button class="btn btn-example" onclick="toggleExamples(event)">예문 보기/숨기기</button>
-        <div class="study-btns">
-            <button class="btn btn-wrong" onclick="markWrong(event)">몰라요 ❌</button>
-            <button class="btn btn-know" onclick="markKnown(event)">알아요 ✅</button>
-        </div>
-        <button class="btn btn-next" onclick="nextWord()">다음 단어</button>
-    </div>
 
-    <script>
-        const vocabulary = [
-            { en: "Be grappling with", ko: "~에 어려움을 겪고 있다", ex: ["The city is grappling with high costs.", "I'm grappling with a hard choice.", "She's grappling with the loss."], exKo: ["도시는 높은 물가와 싸우고 있다.", "나는 어려운 선택으로 고심 중이다.", "그녀는 상실감에 힘들어하고 있다."] },
+<div class="card">
+    <div id="img-box">
+        <span class="loader">이미지 불러오는 중...</span>
+        <img id="word-img" src="" alt="word visualization">
+    </div>
+    <div id="word">Loading...</div>
+    <div id="mean"></div>
+    <div id="ex-box" class="ex-box"></div>
+    
+    <div class="btn-group">
+        <button class="btn-show" onclick="toggleMean()">뜻 보기</button>
+        <button class="btn-next" onclick="nextWord()">다음 단어</button>
+    </div>
+</div>
+
+<script>
+    // 이 부분에 앞서 전달드린 300개의 단어 데이터를 붙여넣으세요!
+    const vocabulary = [
+        
+{ en: "Be grappling with", ko: "~에 어려움을 겪고 있다", ex: ["The city is grappling with high costs.", "I'm grappling with a hard choice.", "She's grappling with the loss."], exKo: ["도시는 높은 물가와 싸우고 있다.", "나는 어려운 선택으로 고심 중이다.", "그녀는 상실감에 힘들어하고 있다."] },
             { en: "Cost of food away from home", ko: "외식 비용", ex: ["Away-from-home food costs rose.", "We need to cut외식비.", "Sticker shock on food away from home."], exKo: ["외식 비용이 상승했습니다.", "외식비를 줄여야 합니다.", "외식비 가격에 충격을 받았습니다."] },
             { en: "Have something off", ko: "주문하다", ex: ["I'll have the steak off the menu.", "Can I have something off the grill?", "She had the salad off the special."], exKo: ["메뉴에 있는 스테이크 주문할게요.", "그릴 요리 하나 주문 가능할까요?", "그녀는 스페셜 메뉴 중 샐러드를 주문했다."] },
             { en: "Make ends meet", ko: "생계를 유지하다", ex: ["It's hard to make ends meet.", "Two jobs to make ends meet.", "Barely making ends meet."], exKo: ["생계 유지가 힘듭니다.", "생계를 위해 투잡을 뜁니다.", "겨우 생계를 유지하고 있습니다."] },
@@ -358,120 +350,58 @@
             { en: "Costs an arm and a leg", ko: "엄청나게 비싸다", ex: ["That house costs an arm and a leg.", "Repairs cost an arm and a leg.", "My new car cost an arm and a leg."], exKo: ["저 집은 정말 등골 휘게 비싸.", "수리비가 장난 아니게 많이 들었어.", "내 새 차는 진짜 거액을 주고 샀어."] },
             { en: "Do something at the drop of a hat", ko: "망설임 없이 즉각 하다", ex: ["He'll help you at the drop of a hat.", "She's ready to travel at the drop of a hat.", "Don't just quit at the drop of a hat."], exKo: ["그는 부르면 언제든 달려와서 도와줄 거야.", "그녀는 언제든 즉시 여행 떠날 준비가 돼 있어.", "그냥 홧김에 바로 그만두지 마."] },
             { en: "Don't count your chickens", ko: "김칫국부터 마시지 마", ex: ["Don't count your chickens before they hatch.", "Wait for the news, don't count your chickens.", "I told him, don't count your chickens."], exKo: ["부화하기도 전에 병아리 숫자 세지 마.", "결과 나올 때까지 기다려, 미리 기대하지 말고.", "내가 그에게 김칫국 마시지 말라고 했어."] }
+        // ... 나머지 299개 단어들
+    ];
 
+    let currentIndex = 0;
 
+    function nextWord() {
+        currentIndex = Math.floor(Math.random() * vocabulary.length);
+        const item = vocabulary[currentIndex];
+        
+        // 텍스트 업데이트
+        document.getElementById('word').innerText = item.en;
+        document.getElementById('mean').innerText = item.ko;
+        document.getElementById('ex-box').innerHTML = `<strong>Ex:</strong> ${item.ex[0]}<br><small style="color:#64748b">${item.exKo[0]}</small>`;
+        
+        // 이미지 업데이트 (Unsplash API 사용)
+        const imgElement = document.getElementById('word-img');
+        const loader = document.querySelector('.loader');
+        
+        imgElement.style.opacity = 0;
+        loader.style.display = 'block';
+        
+        // 검색 키워드 최적화 (숙어의 경우 첫 두 단어만 사용)
+        const query = item.en.split(' ').slice(0, 2).join(',');
+        imgElement.src = `https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80`; // 기본값
+        imgElement.src = `https://source.unsplash.com/400x300/?${query}`;
 
+        imgElement.onload = () => {
+            imgElement.style.opacity = 1;
+            loader.style.display = 'none';
+        };
 
+        // 초기화
+        document.getElementById('mean').style.display = 'none';
+        document.getElementById('ex-box').style.display = 'none';
+    }
 
-            // [데이터] 분량상 300개를 한 페이지에 담으면 스마트폰 앱이 멈출 수 있어, 가장 활용도 높은 순서로 30개를 우선 탑재했습니다.
-            // 나머지 리스트들도 이 형식 { en: "", ko: "", ex: [], exKo: [] }에 맞춰 추가해주시면 됩니다!
-        ];
+    function toggleMean() {
+        const mean = document.getElementById('mean');
+        const ex = document.getElementById('ex-box');
+        const isHidden = mean.style.display === 'none';
+        
+        mean.style.display = isHidden ? 'block' : 'none';
+        ex.style.display = isHidden ? 'block' : 'none';
+    }
 
-        let displayList = [];
-        let currentIndex = 0;
-        let favorites = JSON.parse(localStorage.getItem('favs')) || [];
-        let wrongAnswers = JSON.parse(localStorage.getItem('wrongs')) || [];
-        let currentMode = 'all';
+    // 첫 실행
+    nextWord();
+</script>
 
-        function init() {
-            filterAndShuffle();
-            render();
-        }
-
-        function filterAndShuffle() {
-            if (currentMode === 'fav') displayList = vocabulary.filter(v => favorites.includes(v.en));
-            else if (currentMode === 'wrong') displayList = vocabulary.filter(v => wrongAnswers.includes(v.en));
-            else displayList = [...vocabulary];
-            
-            displayList.sort(() => Math.random() - 0.5);
-            currentIndex = 0;
-        }
-
-        function render() {
-            const wordEl = document.getElementById('word');
-            const meaningEl = document.getElementById('meaning');
-            const counterEl = document.getElementById('counter');
-            const favBtn = document.getElementById('favBtn');
-
-            if (displayList.length === 0) {
-                wordEl.innerText = "단어가 비어있습니다.";
-                meaningEl.innerText = "해당 모드에 단어를 추가해보세요!";
-                meaningEl.style.visibility = 'visible';
-                counterEl.innerText = "0 / 0";
-                return;
-            }
-
-            const item = displayList[currentIndex];
-            wordEl.innerText = item.en;
-            meaningEl.innerText = item.ko;
-            meaningEl.style.visibility = 'hidden';
-            document.getElementById('exampleBox').style.display = 'none';
-            counterEl.innerText = `${currentMode.toUpperCase()}: ${currentIndex + 1} / ${displayList.length}`;
-            favBtn.classList.toggle('active', favorites.includes(item.en));
-
-            for(let i=1; i<=3; i++) {
-                const ex = item.ex && item.ex[i-1];
-                const ek = item.exKo && item.exKo[i-1];
-                document.getElementById(`ex${i}`).innerHTML = ex ? ex + `<span>${ek}</span>` : "";
-            }
-        }
-
-        function changeMode(mode, btn) {
-            currentMode = mode;
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            filterAndShuffle();
-            render();
-        }
-
-        function showMeaning() { document.getElementById('meaning').style.visibility = 'visible'; }
-
-        function nextWord() {
-            if (displayList.length === 0) return;
-            currentIndex = (currentIndex + 1) % displayList.length;
-            if (currentIndex === 0) displayList.sort(() => Math.random() - 0.5);
-            render();
-        }
-
-        function markWrong(event) {
-            event.stopPropagation();
-            const word = displayList[currentIndex].en;
-            if (!wrongAnswers.includes(word)) {
-                wrongAnswers.push(word);
-                localStorage.setItem('wrongs', JSON.stringify(wrongAnswers));
-            }
-            nextWord();
-        }
-
-        function markKnown(event) {
-            event.stopPropagation();
-            const word = displayList[currentIndex].en;
-            wrongAnswers = wrongAnswers.filter(w => w !== word);
-            localStorage.setItem('wrongs', JSON.stringify(wrongAnswers));
-            if (currentMode === 'wrong') { filterAndShuffle(); render(); }
-            else { nextWord(); }
-        }
-
-        function toggleFavorite(event) {
-            event.stopPropagation();
-            const word = displayList[currentIndex].en;
-            if (favorites.includes(word)) favorites = favorites.filter(f => f !== word);
-            else favorites.push(word);
-            localStorage.setItem('favs', JSON.stringify(favorites));
-            render();
-        }
-
-        function toggleExamples(event) {
-            event.stopPropagation();
-            const box = document.getElementById('exampleBox');
-            showMeaning();
-            box.style.display = box.style.display === 'none' ? 'block' : 'none';
-        }
-
-        init();
-    </script>
 </body>
 </html>
+
 
 
 
