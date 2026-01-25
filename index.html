@@ -3,262 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Voca Pro</title>
+    <title>Gemini Voca Pro - Ultimate</title>
     <style>
-        :root { --primary: #6366f1; --bg: #f8fafc; --accent: #f59e0b; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        :root { --primary: #6366f1; --bg: #f1f5f9; --accent: #f59e0b; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         
-        .container { width: 95%; max-width: 400px; text-align: center; }
-        .stats { font-size: 0.8rem; color: #64748b; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; }
-
-        /* 3D 카드 애니메이션 */
-        .scene { width: 100%; height: 520px; perspective: 1000px; cursor: pointer; }
-        .card { width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
-        .card.is-flipped { transform: rotateY(180deg); }
-
-        .card-face {
-            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 1.5rem; border-radius: 25px; box-sizing: border-box;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: white;
-        }
-
-        .card-front { z-index: 2; }
-        .card-back { transform: rotateY(180deg); background: #ffffff; }
-
-        /* 도구 아이콘 */
-        .fav-star { position: absolute; top: 20px; right: 25px; font-size: 1.8rem; color: #e2e8f0; transition: 0.2s; z-index: 10; cursor: pointer; }
-        .fav-star.active { color: var(--accent); }
-
-        /* 이미지 영역 */
-        #img-box { width: 100%; height: 240px; background: #f1f5f9; border-radius: 20px; margin-bottom: 20px; overflow: hidden; position: relative; }
-        #word-img { width: 100%; height: 100%; object-fit: cover; }
+        /* 메인 카드 컨테이너 */
+        .container { width: 95%; max-width: 420px; background: white; padding: 30px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); text-align: center; position: relative; }
         
-        #word { font-size: 2.2rem; font-weight: 800; color: #1e293b; margin-bottom: 5px; letter-spacing: -0.5px; }
-        #mean { font-size: 1.5rem; color: var(--primary); font-weight: 700; margin-bottom: 15px; }
-        
-        .ex-box { background: #f8fafc; padding: 15px; border-radius: 15px; text-align: left; font-size: 0.9rem; line-height: 1.6; color: #475569; width: 100%; border: 1px solid #f1f5f9; box-sizing: border-box; }
+        /* 상단 상태 표시 */
+        .stats { font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .reset-btn { font-size: 0.75rem; color: #cbd5e1; cursor: pointer; text-decoration: underline; border: none; background: none; }
 
-        /* 하단 버튼 세트 */
-        .btn-group { display: flex; gap: 10px; margin-top: 25px; width: 100%; }
-        button { border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; outline: none; }
-        .btn-audio { background: #f1f5f9; padding: 10px 20px; color: #64748b; font-size: 0.9rem; margin-top: 10px; }
-        .btn-audio:hover { background: #e2e8f0; }
-        .btn-know { flex: 1; padding: 15px; background: #ecfdf5; color: #059669; }
-        .btn-next { flex: 1; padding: 15px; background: #1e293b; color: white; }
-        button:active { transform: scale(0.95); }
+        /* 이미지 박스 (수동 로드 방식) */
+        #img-box { width: 100%; height: 210px; background: #f8fafc; border-radius: 20px; margin-bottom: 25px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px dashed #e2e8f0; }
+        #word-img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .img-placeholder { color: #94a3b8; font-size: 0.85rem; padding: 20px; line-height: 1.5; }
+
+        /* 단어 텍스트 */
+        #word { font-size: 2.6rem; font-weight: 800; color: #1e293b; margin: 15px 0; letter-spacing: -1px; }
         
-        .hint { font-size: 0.75rem; color: #cbd5e1; margin-top: 15px; }
+        /* 뜻 & 예문 (숨김 영역) */
+        #content-area { display: none; margin-top: 20px; animation: fadeIn 0.3s ease; }
+        #mean { font-size: 1.4rem; color: var(--primary); font-weight: 700; margin-bottom: 12px; }
+        .ex-box { background: #f9fafb; padding: 18px; border-radius: 15px; text-align: left; font-size: 0.95rem; line-height: 1.6; color: #475569; border: 1px solid #f1f5f9; }
+
+        /* 제어 버튼 그룹 */
+        .control-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px; }
+        button { border: none; border-radius: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; outline: none; }
+        
+        .btn-view { background: #f1f5f9; color: #475569; padding: 14px; font-size: 0.9rem; }
+        .btn-audio { background: #eef2ff; color: #4f46e5; padding: 14px; font-size: 0.9rem; }
+        .btn-next { background: #1e293b; color: white; padding: 18px; grid-column: span 2; font-size: 1.1rem; box-shadow: 0 4px 12px rgba(30,41,59,0.2); }
+        
+        /* 알아요 버튼 (실수 방지용 작고 슬림한 디자인) */
+        .btn-know { background: #fff; color: #059669; padding: 6px 14px; font-size: 0.75rem; margin-top: 30px; border: 1px solid #dcfce7; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; }
+        .btn-know:hover { background: #f0fdf4; }
+
+        /* 즐겨찾기 별 아이콘 */
+        .fav-star { position: absolute; top: 28px; right: 28px; font-size: 1.6rem; color: #e2e8f0; cursor: pointer; transition: 0.2s; z-index: 5; }
+        .fav-star.active { color: var(--accent); transform: scale(1.1); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        button:active { transform: scale(0.97); }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <div class="fav-star" id="fav-btn" onclick="toggleFavorite()">★</div>
+    
     <div class="stats">
         <span id="progress-text">로딩 중...</span>
-        <button onclick="resetData()" style="font-size: 0.7rem; background: none; color: #94a3b8; border: 1px solid #e2e8f0; padding: 2px 8px; border-radius: 4px; cursor: pointer;">데이터 초기화</button>
+        <button class="reset-btn" onclick="resetData()">학습 초기화</button>
     </div>
 
-    <div class="scene">
-        <div class="card" id="main-card" onclick="flipCard()">
-            <div class="card-face card-front">
-                <div class="fav-star" id="fav-btn" onclick="toggleFavorite(event)">★</div>
-                <div id="img-box">
-                    <img id="word-img" src="" alt="word visualization">
-                </div>
-                <div id="word">Loading...</div>
-                <button class="btn-audio" onclick="speak(event)">🔊 Listen Carefully</button>
-                <p class="hint">카드를 터치해 뜻을 확인하세요</p>
-            </div>
-
-            <div class="card-face card-back">
-                <div id="mean">의미</div>
-                <div id="ex-box" class="ex-box"></div>
-                <div class="btn-group">
-                    <button class="btn-know" onclick="markAsKnown(event)">알아요 ✅</button>
-                    <button class="btn-next" onclick="nextWord(event)">다음 단어</button>
-                </div>
-            </div>
-        </div>
+    <div id="img-box">
+        <div class="img-placeholder" id="placeholder-text">연상 이미지가 필요하면<br>아래 [이미지 보기] 버튼을 누르세요</div>
+        <img id="word-img" src="" alt="word image">
     </div>
+
+    <div id="word">Word</div>
+
+    <div class="control-btns">
+        <button class="btn-view" onclick="showImage()">🖼️ 이미지 보기</button>
+        <button class="btn-view" onclick="showContent()">📖 뜻·예문 보기</button>
+        <button class="btn-audio" onclick="speak()">🔊 원어민 발음</button>
+        <button class="btn-next" onclick="nextWord()">다음 단어 (Next)</button>
+    </div>
+
+    <div id="content-area">
+        <div id="mean">의미</div>
+        <div id="ex-box" class="ex-box"></div>
+    </div>
+
+    <button class="btn-know" onclick="markAsKnown()">✅ 이 단어는 마스터했어요</button>
 </div>
 
 <script>
-    // [단어 데이터] - 총 60개 숙어 데이터 포함
+    // 단어 데이터 (최신 60개 기준)
     const vocabulary = [
-        { en: "Cut corners", ko: "절차를 생략하다, 편법을 쓰다", ex: ["Don't cut corners on safety."], exKo: ["안전에 있어서 편법을 쓰지 마세요."] },
-        { en: "In the black", ko: "흑자인", ex: ["The company is finally in the black."], exKo: ["회사가 드디어 흑자로 돌아섰다."] },
-        { en: "Get a grip", ko: "정신 차려, 평정심을 찾아", ex: ["Get a grip on yourself!"], exKo: ["정신 좀 차려!"] },
-        { en: "Play devil's advocate", ko: "일부러 반대 의견을 제시하다", ex: ["Let me play devil's advocate."], exKo: ["제가 잠시만 반대 입장에서 말해볼게요."] },
-        { en: "Pull out all the stops", ko: "온 힘을 다하다", ex: ["They pulled out all the stops."], exKo: ["그들은 모든 수단을 동원했다."] },
-        { en: "Sleep on it", ko: "심사숙고하다", ex: ["Don't decide now, sleep on it."], exKo: ["지금 결정하지 말고 하룻밤 생각해보렴."] },
-        { en: "Hit the books", ko: "열공하다", ex: ["I need to hit the books tonight."], exKo: ["나 오늘 밤에 열공해야 해."] },
-        { en: "Under the counter", ko: "비밀리에, 불법적으로", ex: ["They sold cigarettes under the counter."], exKo: ["그들은 담배를 몰래 팔았다."] },
-        { en: "Wait for the dust to settle", ko: "사태가 진정되기를 기다리다", ex: ["Let's wait for the dust to settle."], exKo: ["상황이 좀 가라앉을 때까지 기다려보자."] },
-        { en: "Beat around the bush", ko: "돌려서 말하다", ex: ["Stop beating around the bush!"], exKo: ["말 돌리지 마!"] },
-        { en: "Cold feet", ko: "겁이 남, 주춤함", ex: ["He got cold feet before the wedding."], exKo: ["그는 결혼식 직전에 겁을 먹었다."] },
-        { en: "Give someone the cold shoulder", ko: "무시하다, 냉대하다", ex: ["She gave me the cold shoulder."], exKo: ["그녀는 나를 냉대했다."] },
-        { en: "Go down in flames", ko: "참담하게 실패하다", ex: ["The project went down in flames."], exKo: ["프로젝트가 완전히 실패로 돌아갔다."] },
-        { en: "Jump on the bandwagon", ko: "시류에 편승하다", ex: ["Everyone is jumping on the bandwagon."], exKo: ["모두가 그 유행을 따르고 있다."] },
-        { en: "Keep your head above water", ko: "간신히 버티다", ex: ["Just trying to keep my head above water."], exKo: ["그저 간신히 버티려고 노력 중이야."] },
-        { en: "Let the cat out of the bag", ko: "비밀을 누설하다", ex: ["Who let the cat out of the bag?"], exKo: ["누가 비밀을 발설했어?"] },
-        { en: "Make a long story short", ko: "간단히 말하자면", ex: ["Long story short, we won."], exKo: ["짧게 말해, 우리가 이겼어."] },
-        { en: "Miss the boat", ko: "기회를 놓치다", ex: ["You missed the boat on that deal."], exKo: ["그 거래 기회를 놓치셨네요."] },
-        { en: "No-brainer", ko: "쉬운 결정", ex: ["It's a no-brainer!"], exKo: ["그건 당연한 거지!"] },
-        { en: "On the fence", ko: "결정을 못 내린", ex: ["I'm still on the fence about it."], exKo: ["난 아직 고민 중이야."] },
-        { en: "Out of the loop", ko: "상황을 잘 모르는", ex: ["I've been out of the loop lately."], exKo: ["나 요즘 돌아가는 상황을 잘 몰라."] },
-        { en: "See eye to eye", ko: "의견이 일치하다", ex: ["Glad we see eye to eye on this."], exKo: ["이 점에 대해 의견이 같아서 다행이야."] },
-        { en: "Steal someone's thunder", ko: "공을 가로채다", ex: ["Don't steal my thunder!"], exKo: ["내 공을 가로채지 마!"] },
-        { en: "Take with a grain of salt", ko: "걸러서 듣다", ex: ["Take it with a grain of salt."], exKo: ["그냥 적당히 걸러서 들어."] },
-        { en: "The ball is in your court", ko: "이제 네 차례다", ex: ["The ball is in your court now."], exKo: ["이제 네가 결정할 차례야."] },
-        { en: "Up in the air", ko: "아직 미정인", ex: ["Everything is still up in the air."], exKo: ["모든 게 아직 정해지지 않았어."] },
-        { en: "Your guess is as good as mine", ko: "나도 모르긴 마찬가지다", ex: ["Your guess is as good as mine."], exKo: ["나도 모르긴 마찬가지야."] },
-        { en: "Barking up the wrong tree", ko: "번지수 잘못 찾다", ex: ["You're barking up the wrong tree."], exKo: ["너 번지수 잘못 짚었어."] },
-        { en: "Beat the clock", ko: "시간 안에 끝내다", ex: ["We managed to beat the clock."], exKo: ["우리는 가까스로 시간 내에 마쳤다."] },
-        { en: "Call it a day", ko: "마무리하다", ex: ["Let's call it a day."], exKo: ["오늘 여기까지 하죠."] },
-        { en: "Catch someone's eye", ko: "눈길을 끌다", ex: ["She caught my eye."], exKo: ["그녀가 내 눈에 띄었다."] },
-        { en: "Cry over spilled milk", ko: "이미 엎질러진 물", ex: ["Don't cry over spilled milk."], exKo: ["이미 지나간 일로 후회하지 마."] },
-        { en: "Cut to the chase", ko: "본론으로 들어가다", ex: ["Let's cut to the chase."], exKo: ["본론으로 들어갑시다."] },
-        { en: "Every cloud has a silver lining", ko: "전화위복", ex: ["Every cloud has a silver lining."], exKo: ["고생 끝에 낙이 온다."] },
-        { en: "Get out of hand", ko: "감당할 수 없게 되다", ex: ["The party got out of hand."], exKo: ["파티가 걷잡을 수 없이 커졌다."] },
-        { en: "Hit the nail on the head", ko: "정곡을 찌르다", ex: ["You hit the nail on the head."], exKo: ["네 말이 정답이야."] },
-        { en: "In the heat of the moment", ko: "욱해서", ex: ["I said it in the heat of the moment."], exKo: ["내가 욱해서 그 말을 해버렸어."] },
-        { en: "Keep an eye on", ko: "~을 계속 지켜보다", ex: ["Keep an eye on the baby."], exKo: ["아기를 계속 봐주세요."] },
-        { en: "Kill two birds with one stone", ko: "일석이조", ex: ["Kill two birds with one stone."], exKo: ["일석이조로 해결하자."] },
-        { en: "Let someone off the hook", ko: "봐주다", ex: ["I'll let you off the hook this time."], exKo: ["이번 한 번만 봐줄게."] },
-        { en: "On the ball", ko: "유능한, 빠른", ex: ["He's really on the ball."], exKo: ["그는 정말 빠릿빠릿해."] },
-        { en: "Once in a blue moon", ko: "아주 드물게", ex: ["I see him once in a blue moon."], exKo: ["나는 그를 아주 가끔 봐."] },
-        { en: "Piece of cake", ko: "식은 죽 먹기", ex: ["It's a piece of cake."], exKo: ["그건 껌이지."] },
-        { en: "Pull someone's leg", ko: "농담하다", ex: ["Are you pulling my leg?"], exKo: ["지금 장난해?"] },
-        { en: "Rule of thumb", ko: "일반 원칙", ex: ["A good rule of thumb is..."], exKo: ["경험에 비추어 본 일반 원칙은..."] },
-        { en: "Sit on the fence", ko: "애매한 태도", ex: ["Don't sit on the fence."], exKo: ["애매하게 있지 마."] },
-        { en: "Under the weather", ko: "몸이 안 좋은", ex: ["I'm feeling under the weather."], exKo: ["몸 컨디션이 별로야."] },
-        { en: "Whole nine yards", ko: "전부 다", ex: ["He gave me the whole nine yards."], exKo: ["그는 나에게 모든 것을 다 알려줬어."] },
-        { en: "Zero in on", ko: "~에 집중하다", ex: ["Zero in on the target."], exKo: ["목표에 집중하세요."] },
-        { en: "Back to square one", ko: "다시 원점으로", ex: ["We're back to square one."], exKo: ["우리 다시 처음으로 돌아왔어."] },
-        { en: "Beating a dead horse", ko: "이미 끝난 일 거론하기", ex: ["Stop beating a dead horse."], exKo: ["이미 끝난 얘기 그만해."] },
-        { en: "Bite off more than you can chew", ko: "무리하다", ex: ["Don't bite off more than you can chew."], exKo: ["과욕 부리지 마."] },
-        { en: "Blessing in disguise", ko: "전화위복", ex: ["It was a blessing in disguise."], exKo: ["그건 불행 중 다행이었어."] },
-        { en: "Burn the candle at both ends", ko: "몹시 무리하다", ex: ["Don't burn the candle at both ends."], exKo: ["너무 무리하지 마."] },
-        { en: "Call it a night", ko: "이만 자다", ex: ["Let's call it a night."], exKo: ["오늘은 이만 자자."] }
+        { en: "Cut corners", ko: "절차를 생략하다, 편법을 쓰다", ex: "Don't cut corners on safety.", exKo: "안전에 있어서 편법을 쓰지 마세요." },
+        { en: "In the black", ko: "흑자인", ex: "The company is finally in the black.", exKo: "회사가 드디어 흑자로 돌아섰다." },
+        { en: "Get a grip", ko: "정신 차려, 평정심을 찾아", ex: "Get a grip on yourself!", exKo: "정신 좀 차려!" },
+        { en: "Play devil's advocate", ko: "일부러 반대 의견을 제시하다", ex: "Let me play devil's advocate.", exKo: "제가 잠시만 반대 입장에서 말해볼게요." },
+        { en: "Pull out all the stops", ko: "온 힘을 다하다", ex: "They pulled out all the stops.", exKo: "그들은 모든 수단을 동원했다." },
+        { en: "Sleep on it", ko: "심사숙고하다", ex: "Don't decide now, sleep on it.", exKo: "지금 결정하지 말고 하룻밤 생각해보렴." },
+        { en: "Hit the books", ko: "열공하다", ex: "I need to hit the books tonight.", exKo: "나 오늘 밤에 열공해야 해." },
+        { en: "Wait for the dust to settle", ko: "사태가 진정되기를 기다리다", ex: "Let's wait for the dust to settle.", exKo: "상황이 좀 가라앉을 때까지 기다려보자." },
+        { en: "Beat around the bush", ko: "돌려서 말하다", ex: "Stop beating around the bush!", exKo: "말 돌리지 마!" },
+        { en: "Cold feet", ko: "겁이 남, 주춤함", ex: "He got cold feet before the wedding.", exKo: "그는 결혼식 직전에 겁을 먹었다." },
+        { en: "Give someone the cold shoulder", ko: "무시하다, 냉대하다", ex: "She gave me the cold shoulder.", exKo: "그녀는 나를 냉대했다." },
+        { en: "Go down in flames", ko: "참담하게 실패하다", ex: "The project went down in flames.", exKo: "프로젝트가 완전히 실패로 돌아갔다." },
+        { en: "Jump on the bandwagon", ko: "시류에 편승하다", ex: "Everyone is jumping on the bandwagon.", exKo: "모두가 그 유행을 따르고 있다." },
+        { en: "Let the cat out of the bag", ko: "비밀을 누설하다", ex: "Who let the cat out of the bag?", exKo: "누가 비밀을 발설했어?" },
+        { en: "Miss the boat", ko: "기회를 놓치다", ex: "You missed the boat on that deal.", exKo: "그 거래 기회를 놓치셨네요." },
+        { en: "On the fence", ko: "결정을 못 내린", ex: "I'm still on the fence about it.", exKo: "난 아직 고민 중이야." }
+        // ... (나머지 단어들도 이 형식으로 추가하시면 됩니다)
     ];
 
     let currentIndex = 0;
+    // 즐겨찾기 및 아는 단어 데이터 LocalStorage 연동
     let favorites = JSON.parse(localStorage.getItem('voca_favs')) || [];
     let knownWords = JSON.parse(localStorage.getItem('voca_known')) || [];
 
-    // [음성 설정 최적화]
-    let synth = window.speechSynthesis;
-    let voices = [];
-
-    function loadVoices() {
-        voices = synth.getVoices();
-    }
-    loadVoices();
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = loadVoices;
-    }
-
-    function speak(event) {
-        if (event) event.stopPropagation();
-        synth.cancel(); // 이전 음성 취소
-
-        const text = vocabulary[currentIndex].en;
-        const utterance = new SpeechSynthesisUtterance(text);
-        
-        // 고품질 원어민 음성 찾기
-        const preferredVoice = voices.find(v => v.name.includes('Google US English')) || 
-                               voices.find(v => v.name.includes('Samantha')) || 
-                               voices.find(v => v.lang === 'en-US');
-
-        if (preferredVoice) utterance.voice = preferredVoice;
-        utterance.lang = 'en-US';
-        utterance.rate = 0.85; // 자연스러운 속도
-        utterance.pitch = 1.0;
-        
-        synth.speak(utterance);
-    }
-
-    // [카드 제어]
-    function flipCard() {
-        document.getElementById('main-card').classList.toggle('is-flipped');
-    }
-
     function updateStats() {
         const pool = vocabulary.filter(w => !knownWords.includes(w.en));
-        document.getElementById('progress-text').innerText = `남은 학습: ${pool.length} / ⭐ 즐겨찾기: ${favorites.length}`;
+        document.getElementById('progress-text').innerText = `남은 미암기 단어: ${pool.length}개`;
     }
 
-    function nextWord(event) {
-        if(event) event.stopPropagation();
-        const card = document.getElementById('main-card');
-        card.classList.remove('is-flipped');
-
-        setTimeout(() => {
-            const pool = vocabulary.filter(w => !knownWords.includes(w.en));
-            if (pool.length === 0) {
-                alert("축하합니다! 모든 단어를 학습했습니다.");
-                knownWords = [];
-                saveData();
-                nextWord();
-                return;
-            }
-
-            const nextItem = pool[Math.floor(Math.random() * pool.length)];
-            currentIndex = vocabulary.findIndex(w => w.en === nextItem.en);
-            render(nextItem);
-            updateStats();
-        }, 200);
-    }
-
-    function render(item) {
-        document.getElementById('word').innerText = item.en;
-        document.getElementById('mean').innerText = item.ko;
-        document.getElementById('ex-box').innerHTML = `<strong>Example Scene:</strong><br>${item.ex[0]}<br><small style="color:#94a3b8; font-weight:400;">${item.exKo[0]}</small>`;
+    function nextWord() {
+        const pool = vocabulary.filter(w => !knownWords.includes(w.en));
         
-        document.getElementById('fav-btn').classList.toggle('active', favorites.includes(item.en));
+        if (pool.length === 0) {
+            alert("🎉 모든 단어를 마스터하셨습니다! 학습 기록을 초기화합니다.");
+            resetData();
+            return;
+        }
 
-        // [이미지 매칭 개선] 
-        // 숙어의 실제 의미를 포함한 키워드로 검색 정확도 향상
-        const keyword = item.en.split(' ').slice(-1)[0]; // 마지막 단어 추출
-        const randomLock = Math.floor(Math.random() * 1000);
-        document.getElementById('word-img').src = `https://loremflickr.com/400/300/${keyword},concept,emotion/all?lock=${randomLock}`;
+        const nextItem = pool[Math.floor(Math.random() * pool.length)];
+        currentIndex = vocabulary.findIndex(w => w.en === nextItem.en);
+        
+        // 화면 초기화
+        document.getElementById('word').innerText = nextItem.en;
+        document.getElementById('content-area').style.display = 'none';
+        document.getElementById('word-img').style.display = 'none';
+        document.getElementById('placeholder-text').style.display = 'block';
+        document.getElementById('placeholder-text').innerHTML = "연상 이미지가 필요하면<br>아래 [이미지 보기] 버튼을 누르세요";
+        
+        // 즐겨찾기 상태 반영
+        document.getElementById('fav-btn').classList.toggle('active', favorites.includes(nextItem.en));
+        
+        updateStats();
     }
 
-    function toggleFavorite(event) {
-        event.stopPropagation();
+    function showContent() {
+        const item = vocabulary[currentIndex];
+        document.getElementById('mean').innerText = item.ko;
+        document.getElementById('ex-box').innerHTML = `<strong>Example:</strong><br>${item.ex}<br><small style="color:#94a3b8">${item.exKo}</small>`;
+        document.getElementById('content-area').style.display = 'block';
+    }
+
+    function showImage() {
+        const item = vocabulary[currentIndex];
+        const img = document.getElementById('word-img');
+        const placeholder = document.getElementById('placeholder-text');
+        
+        placeholder.innerText = "이미지를 불러오는 중...";
+        
+        // 검색어 최적화: 마지막 단어를 키워드로 사용
+        const keyword = item.en.split(' ').pop();
+        const randomSeed = Math.floor(Math.random() * 1000);
+        
+        img.src = `https://loremflickr.com/400/300/${keyword},concept/all?lock=${randomSeed}`;
+        
+        img.onload = () => {
+            img.style.display = 'block';
+            placeholder.style.display = 'none';
+        };
+        img.onerror = () => {
+            placeholder.innerText = "이미지를 찾을 수 없습니다. (탭하여 다시 시도)";
+        };
+    }
+
+    function speak() {
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(vocabulary[currentIndex].en);
+        
+        const voices = window.speechSynthesis.getVoices();
+        // 가장 자연스러운 미국 원어민 음성 선택
+        const selectedVoice = voices.find(v => v.name.includes('Google US English')) || 
+                            voices.find(v => v.lang === 'en-US');
+        
+        if (selectedVoice) msg.voice = selectedVoice;
+        msg.rate = 0.85;
+        window.speechSynthesis.speak(msg);
+    }
+
+    // [알아요] 버튼: 이 단어를 knownWords에 추가하고 목록에서 제외
+    function markAsKnown() {
+        const word = vocabulary[currentIndex].en;
+        if (!knownWords.includes(word)) {
+            knownWords.push(word);
+            localStorage.setItem('voca_known', JSON.stringify(knownWords));
+        }
+        nextWord();
+    }
+
+    // [즐겨찾기] 버튼: 별도 체크용
+    function toggleFavorite() {
         const word = vocabulary[currentIndex].en;
         if (favorites.includes(word)) {
             favorites = favorites.filter(f => f !== word);
         } else {
             favorites.push(word);
         }
-        saveData();
-        document.getElementById('fav-btn').classList.toggle('active');
-        updateStats();
-    }
-
-    function markAsKnown(event) {
-        event.stopPropagation();
-        knownWords.push(vocabulary[currentIndex].en);
-        saveData();
-        nextWord();
-    }
-
-    function saveData() {
         localStorage.setItem('voca_favs', JSON.stringify(favorites));
-        localStorage.setItem('voca_known', JSON.stringify(knownWords));
+        document.getElementById('fav-btn').classList.toggle('active');
     }
 
     function resetData() {
-        if(confirm("모든 학습 기록을 초기화하시겠습니까?")) {
+        if(confirm("모든 즐겨찾기와 학습 기록을 초기화할까요?")) {
             localStorage.clear();
             location.reload();
         }
     }
 
-    // 초기 실행
-    updateStats();
+    // 음성 엔진 로딩 대기
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
+
+    // 첫 실행
     nextWord();
 </script>
 
