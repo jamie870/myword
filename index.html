@@ -3,74 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Voca Etymology Pro</title>
+    <title>Voca Top-Display Pro</title>
     <style>
         :root { --primary: #6366f1; --bg: #f8fafc; --accent: #f59e0b; --etym: #059669; }
         body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; -webkit-font-smoothing: antialiased; }
         
-        .container { width: 92%; max-width: 400px; background: white; padding: 20px; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; position: relative; }
+        .container { width: 92%; max-width: 400px; background: white; padding: 20px; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; position: relative; overflow: hidden; }
         
-        /* 상단 정보 */
-        .stats { font-size: 0.75rem; color: #94a3b8; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; padding: 0 5px; }
+        /* [핵심 변경] 정보 출력 영역을 최상단으로 배치 */
+        #display-area { 
+            width: 100%; 
+            min-height: 110px; /* 높이 고정으로 화면 들썩임 방지 */
+            background: #f0fdf4; 
+            border-radius: 15px; 
+            margin-bottom: 15px; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center; 
+            border: 1px solid #ccfbf1; 
+            padding: 12px; 
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
         
-        /* 어원 표시 영역 (높이 축소) */
-        #etym-box { width: 100%; min-height: 80px; background: #f0fdfa; border-radius: 15px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; border: 1px solid #ccfbf1; padding: 12px; box-sizing: border-box; }
-        #etym-text { color: #134e4a; font-size: 0.85rem; line-height: 1.4; display: none; text-align: left; }
-        .etym-placeholder { color: #5eead4; font-weight: 600; font-size: 0.8rem; }
+        /* 텍스트 스타일들 */
+        .info-text { font-size: 0.88rem; line-height: 1.5; color: #134e4a; text-align: left; width: 100%; display: none; }
+        .placeholder-text { color: #5eead4; font-weight: 600; font-size: 0.85rem; }
+        .mean-highlight { color: var(--primary); font-weight: 800; font-size: 1.1rem; display: block; margin-bottom: 5px; text-align: center; }
 
         /* 단어 스타일 */
-        #word { font-size: 2.2rem; font-weight: 800; color: #1e293b; margin: 8px 0; letter-spacing: -1px; }
+        #word { font-size: 2.3rem; font-weight: 800; color: #1e293b; margin: 10px 0; letter-spacing: -1px; }
         
         /* 버튼 시스템 (한 줄 배치) */
         .control-btns { display: flex; gap: 6px; margin-top: 15px; justify-content: center; }
         button { border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
         
-        /* 한 줄 버튼 크기 조정 */
-        .btn-small { flex: 1; padding: 10px 2px; font-size: 0.75rem; white-space: nowrap; }
+        .btn-small { flex: 1; padding: 12px 2px; font-size: 0.8rem; white-space: nowrap; }
         .btn-etym { background: var(--etym); color: white; }
         .btn-view { background: #f1f5f9; color: #475569; }
         .btn-audio { background: #eef2ff; color: #4f46e5; }
         
-        /* 다음 단어 버튼 (중요하므로 크게 유지) */
-        .btn-next { width: 100%; background: #1e293b; color: white; padding: 15px; font-size: 1rem; margin-top: 10px; border-radius: 12px; }
+        .btn-next { width: 100%; background: #1e293b; color: white; padding: 16px; font-size: 1.1rem; margin-top: 10px; border-radius: 12px; }
         
-        /* 숨겨진 내용 영역 (화면 움직임 최소화) */
-        #content-area { display: none; margin-top: 15px; text-align: left; animation: fadeIn 0.2s ease; }
-        #mean { font-size: 1.2rem; color: var(--primary); font-weight: 700; margin-bottom: 8px; text-align: center; }
-        .ex-box { background: #f8fafc; padding: 12px; border-radius: 12px; font-size: 0.85rem; line-height: 1.4; color: #475569; border: 1px solid #f1f5f9; }
+        /* 하단 작은 버튼들 */
+        .bottom-btns { margin-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .btn-know { background: transparent; color: #cbd5e1; padding: 5px 15px; font-size: 0.7rem; border: 1px solid #f1f5f9; border-radius: 20px; }
+        .add-word-btn { background: var(--accent); color: white; padding: 12px; border-radius: 12px; font-size: 0.85rem; width: 100%; }
 
-        .btn-know { background: transparent; color: #cbd5e1; padding: 5px 12px; font-size: 0.7rem; margin-top: 15px; border: 1px solid #f1f5f9; border-radius: 20px; }
-        .add-word-btn { background: var(--accent); color: white; padding: 12px; border-radius: 12px; font-size: 0.85rem; margin-top: 10px; width: 100%; }
-
-        .fav-star { position: absolute; top: 20px; right: 20px; font-size: 1.4rem; color: #e2e8f0; cursor: pointer; }
+        .fav-star { position: absolute; top: 18px; right: 18px; font-size: 1.5rem; color: #e2e8f0; cursor: pointer; }
         .fav-star.active { color: var(--accent); }
 
-        /* 모달 */
-        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        /* 모달 스타일 생략(동일) */
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: white; padding: 20px; border-radius: 20px; width: 100%; max-width: 340px; }
-        .modal-content input, .modal-content textarea { width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; font-size: 0.9rem; }
-        .modal-btns { display: flex; gap: 8px; margin-top: 12px; }
-        .modal-btns button { flex: 1; padding: 12px; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        button:active { transform: scale(0.96); opacity: 0.8; }
+        .modal-content input, .modal-content textarea { width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; }
+        
+        .stats { font-size: 0.75rem; color: #94a3b8; margin-bottom: 10px; text-align: left; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="fav-star" id="fav-btn" onclick="toggleFavorite()">★</div>
-    <div class="stats">
-        <span id="progress-text">로드 중...</span>
-        <span onclick="resetData()" style="cursor: pointer; opacity: 0.4;">초기화</span>
+    <div class="stats" id="progress-text">로드 중...</div>
+
+    <div id="display-area">
+        <div class="placeholder-text" id="placeholder">알고 싶은 정보를 눌러보세요</div>
+        <div id="etym-display" class="info-text"></div>
+        <div id="content-display" class="info-text"></div>
     </div>
 
-    <div id="etym-box">
-        <div class="etym-placeholder" id="etym-placeholder">📜 어원 보기</div>
-        <div id="etym-text"></div>
-    </div>
-
-    <div id="word">Ready</div>
+    <div id="word">Word</div>
 
     <div class="control-btns">
         <button class="btn-small btn-etym" onclick="showEtymology()">📜 어원</button>
@@ -80,76 +84,79 @@
     
     <button class="btn-next" onclick="nextWord()">다음 단어 (Next)</button>
 
-    <div id="content-area">
-        <div id="mean">의미</div>
-        <div id="ex-box" class="ex-box"></div>
+    <div class="bottom-btns">
+        <button class="btn-know" onclick="markAsKnown()">✅ 이 단어 마스터</button>
+        <button class="add-word-btn" onclick="openModal()">+ 단어 추가하기</button>
+        <span onclick="resetData()" style="font-size:0.65rem; color:#cbd5e1; cursor:pointer;">데이터 초기화</span>
     </div>
-
-    <button class="btn-know" onclick="markAsKnown()">✅ 마스터</button>
-    <button class="add-word-btn" onclick="openModal()">+ 단어 추가</button>
 </div>
 
 <div id="modal" onclick="if(event.target == this) closeModal()">
     <div class="modal-content">
-        <h3 style="margin:0 0 12px 0; font-size:1.1rem;">새 단어 등록</h3>
+        <h3 style="margin-top:0">단어 추가</h3>
         <input type="text" id="new-en" placeholder="영어">
-        <input type="text" id="new-ko" placeholder="한글 뜻">
+        <input type="text" id="new-ko" placeholder="뜻">
         <textarea id="new-etym" placeholder="어원" rows="2"></textarea>
         <textarea id="new-ex" placeholder="예문" rows="2"></textarea>
-        <div class="modal-btns">
-            <button onclick="closeModal()" style="background:#f1f5f9;">취소</button>
-            <button onclick="addNewWord()" style="background:var(--primary); color:white;">저장</button>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button onclick="closeModal()" style="flex:1; padding:10px;">취소</button>
+            <button onclick="addNewWord()" style="flex:1; padding:10px; background:var(--primary); color:white; border-radius:8px;">저장</button>
         </div>
     </div>
 </div>
 
 <script>
-    // [데이터 및 로직은 이전과 동일하게 유지]
     const baseData = [
         { en: "Cut corners", ko: "절차 생략, 편법 사용", etym: "모서리를 질러가서 시간을 아끼려는 행위 유래", ex: "Don't cut corners on safety." },
-        { en: "In the black", ko: "흑자인", etym: "흑색 잉크로 이익을 기록하던 관습 유래", ex: "Finally in the black." },
-        { en: "Cold feet", ko: "겁이 남, 주춤함", etym: "공포로 발이 얼어붙는 심리 상태 묘사", ex: "He got cold feet before the wedding." },
-        { en: "Sleep on it", ko: "심사숙고하다", etym: "하룻밤 자며 뇌가 정보를 정리할 시간 부여", ex: "Sleep on it before deciding." },
-        { en: "Under the weather", ko: "몸이 안 좋은", etym: "날씨 피해 갑판 아래로 피신한 선원 유래", ex: "Feeling under the weather." }
+        { en: "In the black", ko: "흑자인", etym: "검은색 잉크로 이익을 기록하던 관습 유래", ex: "The company is finally in the black." },
+        { en: "Cold feet", ko: "겁이 남, 주춤함", etym: "공포로 발이 얼어붙는 심리 상태 유래", ex: "He got cold feet before the wedding." },
+        { en: "Break a leg", ko: "행운을 빌어", etym: "무대 인사 시 무릎을 굽히는(break) 동작에서 유래", ex: "Break a leg on your performance!" }
     ];
 
     let myData = JSON.parse(localStorage.getItem('etym_voca_custom')) || [];
     let combinedData = [...baseData, ...myData];
     let currentIndex = 0;
-    let favorites = JSON.parse(localStorage.getItem('etym_favs')) || [];
     let knownWords = JSON.parse(localStorage.getItem('etym_known')) || [];
+    let favorites = JSON.parse(localStorage.getItem('etym_favs')) || [];
 
     function updateStats() {
         const pool = combinedData.filter(w => !knownWords.includes(w.en));
-        document.getElementById('progress-text').innerText = `남은: ${pool.length} / 전체: ${combinedData.length}`;
+        document.getElementById('progress-text').innerText = `남은 단어: ${pool.length} / 전체: ${combinedData.length}`;
     }
 
     function nextWord() {
         const pool = combinedData.filter(w => !knownWords.includes(w.en));
-        if (pool.length === 0) { alert("학습 완료!"); return; }
+        if (pool.length === 0) { alert("완료!"); return; }
         const nextItem = pool[Math.floor(Math.random() * pool.length)];
         currentIndex = combinedData.findIndex(w => w.en === nextItem.en);
+        
         document.getElementById('word').innerText = nextItem.en;
-        document.getElementById('content-area').style.display = 'none';
-        document.getElementById('etym-text').style.display = 'none';
-        document.getElementById('etym-placeholder').style.display = 'block';
+        document.getElementById('placeholder').style.display = 'block';
+        document.getElementById('etym-display').style.display = 'none';
+        document.getElementById('content-display').style.display = 'none';
         document.getElementById('fav-btn').classList.toggle('active', favorites.includes(nextItem.en));
         updateStats();
     }
 
     function showEtymology() {
-        const etymText = document.getElementById('etym-text');
-        const placeholder = document.getElementById('etym-placeholder');
-        etymText.innerText = combinedData[currentIndex].etym || "어원 정보 없음";
-        etymText.style.display = 'block';
-        placeholder.style.display = 'none';
+        hideAllInfo();
+        const display = document.getElementById('etym-display');
+        display.innerText = "📜 어원: " + (combinedData[currentIndex].etym || "정보 없음");
+        display.style.display = 'block';
     }
 
     function showContent() {
+        hideAllInfo();
+        const display = document.getElementById('content-display');
         const item = combinedData[currentIndex];
-        document.getElementById('mean').innerText = item.ko;
-        document.getElementById('ex-box').innerHTML = `<strong>Ex:</strong> ${item.ex || '없음'}`;
-        document.getElementById('content-area').style.display = 'block';
+        display.innerHTML = `<span class="mean-highlight">${item.ko}</span><strong>Ex:</strong> ${item.ex || '예문 없음'}`;
+        display.style.display = 'block';
+    }
+
+    function hideAllInfo() {
+        document.getElementById('placeholder').style.display = 'none';
+        document.getElementById('etym-display').style.display = 'none';
+        document.getElementById('content-display').style.display = 'none';
     }
 
     function speak() {
@@ -192,9 +199,7 @@
         updateStats();
     }
 
-    function resetData() {
-        if(confirm("초기화할까요?")) { localStorage.clear(); location.reload(); }
-    }
+    function resetData() { if(confirm("초기화?")) { localStorage.clear(); location.reload(); } }
 
     window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
     nextWord();
